@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - schoolWeb</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+</head>
+<body>
+    <header class="main-header">
+        <div class="container nav-wrapper">
+            <div class="brand">
+                <a asp-controller="Auth" asp-action="Login">schoolWeb</a>
+            </div>
+
+            <nav class="nav-links">
+                @if (Context.Session.GetString("RoleName") == "Admin")
+                {
+                    <a asp-controller="Admin" asp-action="Index">لوحة المدير</a>
+                    
+                }
+                else if (Context.Session.GetString("RoleName") == "Teacher")
+                {
+                    <a asp-controller="Teacher" asp-action="Index">لوحة المدرس</a>
+                }
+                else if (Context.Session.GetString("RoleName") == "Student")
+                {
+                    <a asp-controller="Student" asp-action="Index">لوحة الطالب</a>
+                }
+
+                @if (!string.IsNullOrEmpty(Context.Session.GetString("FullName")))
+                {
+                    <span class="welcome-text">مرحبًا، @Context.Session.GetString("FullName")</span>
+                    <a asp-controller="Auth" asp-action="Logout" class="logout-link">تسجيل الخروج</a>
+                }
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="container">
+            @RenderBody()
+        </div>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

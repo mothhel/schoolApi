@@ -1,0 +1,348 @@
+﻿@model schoolWeb.ViewModels.Grade.MidYearGradePageViewModel
+
+@*
+    هذه الصفحة مسؤولة عن إدخال درجات نصف العام
+
+    طريقة العمل:
+    - اختيار الصف
+    - اختيار الشعبة
+    - اختيار المادة
+    - تظهر قائمة طلاب الصف والشعبة
+    - يتم البحث عن الطالب بالاسم أو الرقم
+    - إدخال:
+        المحصلة الأولى /20
+        اختبار نصف العام /30
+    - حفظ درجة كل طالب بشكل مستقل
+*@
+
+@{
+    ViewData["Title"] = "إدخال درجات نصف العام";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>إدخال درجات نصف العام</h2>
+    <p>اختاري الصف والشعبة والمادة، ثم أدخلي درجات الطلاب لهذه المادة.</p>
+</div>
+
+<style>
+    .grade-card {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 24px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+
+    .grade-search-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 20px;
+    }
+
+    .score-input {
+        max-width: 120px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .total-box {
+        font-weight: bold;
+        color: #1e40af;
+    }
+
+    .save-status {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+    }
+</style>
+
+<div class="grade-card">
+    <h3 style="margin-top:0;">اختيار الصف والشعبة والمادة</h3>
+
+    <div class="filters-grid">
+        <div class="form-group">
+            <label>الصف</label>
+            <select id="classRoomSelect"
+                    class="form-control"
+                    asp-items="Model.ClassRooms">
+                <option value="">-- اختر الصف --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>الشعبة</label>
+            <select id="sectionSelect" class="form-control">
+                <option value="">-- اختر الشعبة --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>المادة</label>
+            <select id="subjectSelect" class="form-control">
+                <option value="">-- اختر المادة --</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="grade-search-box">
+    <h3 style="margin-top:0;">البحث عن طالب</h3>
+    <input id="studentSearchInput"
+           class="form-control"
+           placeholder="ابحثي باسم الطالب أو رقم الطالب" />
+</div>
+
+<div class="grade-card">
+    <h3 style="margin-top:0;">قائمة الطلاب</h3>
+
+    <table class="custom-table" id="studentsTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>م</th>
+                <th>اسم الطالب</th>
+                <th>رقم الطالب</th>
+                <th>المحصلة الأولى /20</th>
+                <th>اختبار نصف العام /30</th>
+                <th>المجموع /50</th>
+                <th>حفظ</th>
+            </tr>
+        </thead>
+
+        <tbody id="studentsTableBody">
+        </tbody>
+    </table>
+
+    <p id="emptyMessage">اختاري الصف والشعبة والمادة لعرض الطلاب.</p>
+</div>
+
+@section Scripts {
+    <script>
+        const classRoomSelect = document.getElementById("classRoomSelect");
+        const sectionSelect = document.getElementById("sectionSelect");
+        const subjectSelect = document.getElementById("subjectSelect");
+        const studentSearchInput = document.getElementById("studentSearchInput");
+        const studentsTable = document.getElementById("studentsTable");
+        const studentsTableBody = document.getElementById("studentsTableBody");
+        const emptyMessage = document.getElementById("emptyMessage");
+
+        function resetStudents() {
+            studentsTableBody.innerHTML = "";
+            studentsTable.style.display = "none";
+            emptyMessage.style.display = "block";
+        }
+
+        classRoomSelect.addEventListener("change", function () {
+            const classRoomName = this.value;
+
+            sectionSelect.innerHTML = '<option value="">-- اختر الشعبة --</option>';
+            subjectSelect.innerHTML = '<option value="">-- اختر المادة --</option>';
+            resetStudents();
+
+            if (!classRoomName) return;
+
+            fetch('/AdminGrade/GetSectionsByClassRoom?classRoomName=' + encodeURIComponent(classRoomName))
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item.sectionName;
+                        option.text = item.sectionName;
+                        sectionSelect.appendChild(option);
+                    });
+                });
+        });
+
+        sectionSelect.addEventListener("change", function () {
+            const classRoomName = classRoomSelect.value;
+            const sectionName = this.value;
+
+            subjectSelect.innerHTML = '<option value="">-- اختر المادة --</option>';
+            resetStudents();
+
+            if (!classRoomName || !sectionName) return;
+
+            fetch('/AdminGrade/GetSubjectsByClassRoomAndSection?classRoomName='
+                + encodeURIComponent(classRoomName)
+                + '&sectionName=' + encodeURIComponent(sectionName))
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item.subjectName;
+                        option.text = item.subjectName;
+                        subjectSelect.appendChild(option);
+                    });
+                });
+        });
+
+        subjectSelect.addEventListener("change", function () {
+            loadStudents();
+        });
+
+        function loadStudents() {
+            const classRoomName = classRoomSelect.value;
+            const sectionName = sectionSelect.value;
+            const subjectName = subjectSelect.value;
+
+            resetStudents();
+
+            if (!classRoomName || !sectionName || !subjectName) return;
+
+            fetch('/AdminGrade/GetStudentsByClassRoomAndSection?classRoomName='
+                + encodeURIComponent(classRoomName)
+                + '&sectionName=' + encodeURIComponent(sectionName))
+                .then(response => response.json())
+                .then(data => {
+                    studentsTableBody.innerHTML = "";
+
+                    if (data.length === 0) {
+                        emptyMessage.textContent = "لا يوجد طلاب في هذا الصف والشعبة.";
+                        emptyMessage.style.display = "block";
+                        return;
+                    }
+
+                    data.forEach((student, index) => {
+                        const row = document.createElement("tr");
+
+                        row.className = "student-row";
+                        row.setAttribute("data-search", (student.fullName + " " + student.studentNumber).toLowerCase());
+
+                        row.innerHTML = `
+                                    <td class="row-number">${index + 1}</td>
+                                    <td>${student.fullName}</td>
+                                    <td>${student.studentNumber}</td>
+                                    <td>
+                                        <input type="number" min="0" max="20" step="0.5"
+                                               class="form-control score-input first-score"
+                                               value="0" />
+                                    </td>
+                                    <td>
+                                        <input type="number" min="0" max="30" step="0.5"
+                                               class="form-control score-input midterm-score"
+                                               value="0" />
+                                    </td>
+                                    <td class="total-box">0</td>
+                                    <td>
+                                        <button type="button"
+                                                class="btn-primary-custom save-grade-btn"
+                                                style="width:auto; padding:8px 16px;"
+                                                data-student-number="${student.studentNumber}">
+                                            حفظ
+                                        </button>
+                                        <span class="save-status"></span>
+                                    </td>
+                                `;
+
+                        studentsTableBody.appendChild(row);
+                    });
+
+                    studentsTable.style.display = "";
+                    emptyMessage.style.display = "none";
+                    attachEvents();
+                });
+        }
+
+        function attachEvents() {
+            document.querySelectorAll(".student-row").forEach(row => {
+                const firstInput = row.querySelector(".first-score");
+                const midtermInput = row.querySelector(".midterm-score");
+                const totalCell = row.querySelector(".total-box");
+
+                function updateTotal() {
+                    const first = parseFloat(firstInput.value) || 0;
+                    const midterm = parseFloat(midtermInput.value) || 0;
+                    totalCell.textContent = first + midterm;
+                }
+
+                firstInput.addEventListener("input", updateTotal);
+                midtermInput.addEventListener("input", updateTotal);
+            });
+
+            document.querySelectorAll(".save-grade-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    const row = this.closest("tr");
+                    const status = row.querySelector(".save-status");
+
+                    const firstScore = parseFloat(row.querySelector(".first-score").value) || 0;
+                    const midtermScore = parseFloat(row.querySelector(".midterm-score").value) || 0;
+
+                    if (firstScore < 0 || firstScore > 20) {
+                        status.textContent = "المحصلة الأولى يجب أن تكون من 0 إلى 20";
+                        status.style.color = "red";
+                        return;
+                    }
+
+                    if (midtermScore < 0 || midtermScore > 30) {
+                        status.textContent = "اختبار نصف العام يجب أن يكون من 0 إلى 30";
+                        status.style.color = "red";
+                        return;
+                    }
+
+                    const data = {
+                        classRoomName: classRoomSelect.value,
+                        sectionName: sectionSelect.value,
+                        subjectName: subjectSelect.value,
+                        studentNumber: this.dataset.studentNumber,
+                        firstAssessmentScore: firstScore,
+                        midtermExamScore: midtermScore
+                    };
+
+                    status.textContent = "جاري الحفظ...";
+                    status.style.color = "#64748b";
+
+                    fetch('/AdminGrade/SaveMidYearStudentGrade', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(async response => {
+                            if (!response.ok) {
+                                const error = await response.text();
+                                throw new Error(error);
+                            }
+                            return response.json();
+                        })
+                        .then(result => {
+                            status.textContent = "تم الحفظ بنجاح";
+                            status.style.color = "green";
+                            row.querySelector(".total-box").textContent = result.total;
+                        })
+                        .catch(error => {
+                            status.textContent = error.message;
+                            status.style.color = "red";
+                        });
+                });
+            });
+        }
+
+        studentSearchInput.addEventListener("input", function () {
+            const searchValue = this.value.trim().toLowerCase();
+            let visibleCount = 0;
+
+            document.querySelectorAll(".student-row").forEach(row => {
+                const text = row.getAttribute("data-search");
+
+                if (text.includes(searchValue)) {
+                    row.style.display = "";
+                    visibleCount++;
+                    row.querySelector(".row-number").textContent = visibleCount;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    </script>
+}

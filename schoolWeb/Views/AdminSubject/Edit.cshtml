@@ -1,0 +1,45 @@
+﻿@model schoolWeb.ViewModels.Subject.UpdateSubjectViewModel
+
+@*
+    هذه الصفحة مسؤولة عن تعديل اسم المادة
+*@
+
+@{
+    ViewData["Title"] = "تعديل مادة";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>تعديل المادة</h2>
+    <p>يمكنك من هنا تعديل اسم المادة الدراسية.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-group">
+            <label asp-for="Name">اسم المادة</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ التعديل
+            </button>
+
+            <a asp-controller="AdminSubject" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

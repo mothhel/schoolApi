@@ -1,0 +1,87 @@
+﻿@model schoolWeb.ViewModels.Teacher.CreateTeacherViewModel
+
+@*
+    هذه الصفحة مسؤولة عن:
+    - إدخال بيانات مدرس جديد
+    - إرسال البيانات إلى AdminTeacherController
+*@
+
+@{
+    ViewData["Title"] = "إضافة مدرس";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>إضافة مدرس جديد</h2>
+    <p>أدخلي بيانات المدرس كاملة ثم اضغطي حفظ.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Create" method="post">
+        <h3>بيانات الحساب</h3>
+
+        <div class="form-group">
+            <label asp-for="FullName">اسم المدرس</label>
+            <input asp-for="FullName" class="form-control" placeholder="مثال: أحمد محمد علي" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Username">اسم المستخدم</label>
+            <input asp-for="Username" class="form-control" placeholder="مثال: teacher1001" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password">كلمة المرور</label>
+            <input asp-for="Password" type="password" class="form-control" placeholder="مثال: 123456" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <hr />
+
+        <h3>بيانات المدرس</h3>
+
+        <div class="info-message">
+            سيتم إنشاء رقم المدرس تلقائيًا عند حفظ المدرس.
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Specialty">التخصص</label>
+            <input asp-for="Specialty" class="form-control" placeholder="مثال: رياضيات" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PhoneNumber">رقم الهاتف</label>
+            <input asp-for="PhoneNumber" class="form-control" placeholder="رقم هاتف المدرس" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Address">العنوان</label>
+            <input asp-for="Address" class="form-control" placeholder="عنوان المدرس" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="HireDate">تاريخ التوظيف</label>
+            <input asp-for="HireDate" type="date" class="form-control" />
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ المدرس
+            </button>
+
+            <a asp-controller="AdminTeacher" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

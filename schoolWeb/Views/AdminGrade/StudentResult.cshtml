@@ -1,0 +1,443 @@
+﻿@model schoolWeb.ViewModels.Grade.StudentFullResultViewModel
+
+@functions {
+    /*
+        هذه الدالة تستخدم لتنسيق الأرقام في النتيجة
+
+        مثال:
+        50.00 تصبح 50
+        49.50 تصبح 49.5
+        47.25 تبقى 47.25
+    */
+    string FormatNumber(decimal value)
+    {
+        return value.ToString("0.##");
+    }
+}
+
+@{
+    ViewData["Title"] = "نتيجة طالب";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header no-print">
+    <h2>نتيجة طالب</h2>
+    <p>ابحثي عن الطالب بالاسم أو الرقم، ثم اعرضي نتيجته التفصيلية.</p>
+</div>
+
+<style>
+    .result-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .student-summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 25px;
+    }
+
+    .summary-item {
+        background: #eef2ff;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .summary-item span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+    .result-footer-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .footer-box {
+        border-radius: 14px;
+        padding: 15px;
+        text-align: center;
+        font-weight: bold;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #1e293b;
+    }
+
+        .footer-box span {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+    .success-status {
+        background: #ecfdf5;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .fail-status {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    .result-badge {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .failed-row {
+        background: #fff1f2;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 45px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 8px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        top: 9px !important;
+    }
+
+    /*
+            أزرار الطباعة وحفظ PDF
+            لا تظهر عند الطباعة
+        */
+    .result-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    /*
+            ملاحظة صغيرة للمستخدم:
+            زر حفظ PDF يستخدم طباعة المتصفح
+            ثم يختار المستخدم Save as PDF
+        */
+    .pdf-note {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    /*
+            إعدادات الطباعة:
+            عند الضغط على طباعة أو حفظ PDF
+            يتم عرض النتيجة فقط بدون البحث والأزرار
+        */
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #resultToPrint,
+        #resultToPrint * {
+            visibility: visible;
+        }
+
+        #resultToPrint {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 100%;
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 15px !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .result-card {
+            box-shadow: none !important;
+        }
+    }
+</style>
+
+<div class="result-card no-print">
+    <form asp-action="StudentResult" method="post">
+        <div class="form-group">
+            <label asp-for="StudentNumber">الطالب</label>
+
+            <select asp-for="StudentNumber"
+                    asp-items="Model.Students"
+                    class="form-control"
+                    id="studentSelect">
+                <option value="">-- ابحثي باسم الطالب أو رقمه --</option>
+            </select>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit"
+                    class="btn-primary-custom"
+                    style="width:auto; padding:12px 24px;">
+                عرض النتيجة
+            </button>
+
+            <a asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message no-print" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+@if (Model != null && Model.Results != null && Model.Results.Any())
+{
+   @*  <div class="pdf-note no-print">
+        عند الضغط على زر حفظ PDF ستظهر نافذة الطباعة، اختَر منها حفظ كـ PDF أو Save as PDF لحفظ الملف على جهازك.
+    </div> *@
+
+    <div class="result-actions no-print">
+        <button type="button"
+                class="btn-primary-custom"
+                style="width:auto; padding:12px 24px;"
+                onclick="printStudentResult()">
+            طباعة النتيجة
+        </button>
+
+        <button type="button"
+                class="btn-secondary-custom"
+                onclick="saveStudentResultPdf()">
+            حفظ PDF
+        </button>
+    </div>
+
+    <div class="result-card" id="resultToPrint">
+        <h3 style="margin-top:0;">بيانات الطالب</h3>
+
+        @if (Model.HasFinalYear)
+        {
+            <div class="result-badge">نتيجة كاملة: نصف العام + نهاية العام</div>
+        }
+        else
+        {
+            <div class="result-badge">نتيجة نصف العام فقط</div>
+        }
+
+        <div class="student-summary">
+            <div class="summary-item">
+                <span>اسم الطالب</span>
+                @Model.StudentName
+            </div>
+
+            <div class="summary-item">
+                <span>رقم الطالب</span>
+                @Model.StudentNumber
+            </div>
+
+            <div class="summary-item">
+                <span>الصف</span>
+                @Model.ClassRoomName
+            </div>
+
+            <div class="summary-item">
+                <span>الشعبة</span>
+                @Model.SectionName
+            </div>
+        </div>
+
+        @if (Model.HasFinalYear)
+        {
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>المادة</th>
+                        <th>المحصلة الأولى /20</th>
+                        <th>اختبار نصف العام /30</th>
+                        <th>نصف العام /50</th>
+                        <th>المحصلة الثانية /20</th>
+                        <th>اختبار نهاية العام /30</th>
+                        <th>نهاية العام /50</th>
+                        <th>المجموع /100</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        int counter = 1;
+                    }
+
+                    @foreach (var item in Model.Results)
+                    {
+                        <tr class="@(item.IsFailed ? "failed-row" : "")">
+                            <td>@counter</td>
+                            <td>@item.SubjectName</td>
+                            <td>@FormatNumber(item.FirstAssessmentScore)</td>
+                            <td>@FormatNumber(item.MidtermExamScore)</td>
+                            <td><strong>@FormatNumber(item.MidYearTotal)</strong></td>
+                            <td>@FormatNumber(item.SecondAssessmentScore)</td>
+                            <td>@FormatNumber(item.FinalExamScore)</td>
+                            <td><strong>@FormatNumber(item.FinalYearTotal)</strong></td>
+                            <td><strong>@FormatNumber(item.Total)</strong></td>
+                            <td>@(item.IsFailed ? "راسب" : "ناجح")</td>
+                        </tr>
+
+                        counter++;
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>المادة</th>
+                        <th>المحصلة الأولى /20</th>
+                        <th>اختبار نصف العام /30</th>
+                        <th>مجموع نصف العام /50</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        int counter = 1;
+                    }
+
+                    @foreach (var item in Model.Results)
+                    {
+                        <tr class="@(item.IsFailed ? "failed-row" : "")">
+                            <td>@counter</td>
+                            <td>@item.SubjectName</td>
+                            <td>@FormatNumber(item.FirstAssessmentScore)</td>
+                            <td>@FormatNumber(item.MidtermExamScore)</td>
+                            <td><strong>@FormatNumber(item.MidYearTotal)</strong></td>
+                            <td>@(item.IsFailed ? "راسب" : "ناجح")</td>
+                        </tr>
+
+                        counter++;
+                    }
+                </tbody>
+            </table>
+        }
+
+        <div class="result-footer-grid">
+            <div class="footer-box">
+                <span>المجموع</span>
+                @FormatNumber(Model.GrandTotal) / @FormatNumber(Model.MaxTotal)
+            </div>
+
+            <div class="footer-box">
+                <span>المعدل</span>
+                @FormatNumber(Model.Percentage) %
+            </div>
+
+            <div class="footer-box">
+                <span>التقدير</span>
+                @Model.Estimate
+            </div>
+
+            <div class="footer-box @(Model.FinalStatus == "ناجح" ? "success-status" : "fail-status")">
+                <span>الحالة</span>
+                @Model.FinalStatus
+            </div>
+
+            <div class="footer-box @(Model.FailedSubjectsCount > 0 ? "fail-status" : "success-status")">
+                <span>مواد الرسوب</span>
+                @Model.FailedSubjectsCount
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        /*
+            تشغيل البحث الاحترافي عن الطالب
+        */
+        $(document).ready(function () {
+            $('#studentSelect').select2({
+                placeholder: "-- ابحثي باسم الطالب أو رقمه --",
+                allowClear: true,
+                width: '100%',
+                dir: "rtl"
+            });
+        });
+
+        /*
+            طباعة نتيجة الطالب فقط
+        */
+        function printStudentResult() {
+            const oldTitle = document.title;
+            const studentNumber = "@(Model?.StudentNumber ?? "student")";
+
+            document.title = "نتيجة-" + studentNumber;
+
+            window.print();
+
+            document.title = oldTitle;
+        }
+
+        /*
+            حفظ PDF بدون مكتبة خارجية
+
+            المتصفح لا يسمح بحفظ PDF مباشرة بصمت لأسباب أمان.
+            لذلك نفتح نافذة الطباعة، ومنها تختار:
+            Save as PDF / حفظ كـ PDF
+
+            هذا لا يحتاج إنترنت ولا أي مكتبة.
+        */
+        function saveStudentResultPdf() {
+            const resultElement = document.getElementById("resultToPrint");
+
+            if (!resultElement) {
+                alert("لا توجد نتيجة لحفظها.");
+                return;
+            }
+
+            const oldTitle = document.title;
+            const studentNumber = "@(Model?.StudentNumber ?? "student")";
+
+            document.title = "نتيجة-" + studentNumber;
+
+            window.print();
+
+            document.title = oldTitle;
+        }
+    </script>
+}

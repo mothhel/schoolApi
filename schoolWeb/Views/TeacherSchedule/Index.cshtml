@@ -1,0 +1,322 @@
+﻿@model List<schoolWeb.ViewModels.TeacherPortal.TeacherScheduleViewModel>
+
+@{
+    ViewData["Title"] = "جدولي الدراسي";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var dayOrder = new List<string>
+    {
+        "السبت",
+        "الأحد",
+        "الاثنين",
+        "الثلاثاء",
+        "الأربعاء",
+        "الخميس"
+    };
+
+    var schedulesByDay = Model != null
+        ? Model.GroupBy(s => s.DayName).ToDictionary(g => g.Key, g => g.OrderBy(x => x.PeriodNumber).ToList())
+        : new Dictionary<string, List<schoolWeb.ViewModels.TeacherPortal.TeacherScheduleViewModel>>();
+}
+
+@*
+    هذه الصفحة تعرض الجدول الدراسي للأستاذ فقط
+
+    الأستاذ لا يستطيع:
+    - إضافة
+    - تعديل
+    - حذف
+
+    فقط يشاهد الحصص المرتبطة بتكليفاته.
+*@
+
+<div class="dashboard-header">
+    <h2>جدولي الدراسي</h2>
+    <p>هنا يمكنك عرض جدولك الدراسي حسب التكليفات المرتبطة بك.</p>
+</div>
+
+<style>
+    .teacher-schedule-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .teacher-info-card,
+    .schedule-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .teacher-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .info-box span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+    .schedule-search-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 20px;
+    }
+
+    .day-title {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 16px;
+        padding: 14px 18px;
+        font-weight: bold;
+        margin: 22px 0 12px 0;
+        border: 1px solid #bfdbfe;
+    }
+
+    .period-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #f5f3ff;
+        color: #6d28d9;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .subject-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: #166534;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .class-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #fff7ed;
+        color: #c2410c;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .time-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #fffbeb;
+        color: #92400e;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .empty-day {
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        padding: 14px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+    }
+
+    @@media (max-width: 900px) {
+        .teacher-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="teacher-schedule-wrapper">
+
+    <div class="teacher-info-card">
+        <h3 style="margin-top:0;">بيانات الأستاذ</h3>
+
+        <div class="teacher-info-grid">
+            <div class="info-box">
+                <span>اسم الأستاذ</span>
+                @(ViewBag.TeacherName ?? "غير متوفر")
+            </div>
+
+            <div class="info-box">
+                <span>رقم الأستاذ</span>
+                @(ViewBag.TeacherNumber ?? "غير متوفر")
+            </div>
+        </div>
+    </div>
+
+    <div class="schedule-panel">
+        <h3 style="margin-top:0;">الجدول الدراسي</h3>
+
+        <div class="schedule-search-box">
+            <input id="scheduleSearchInput"
+                   class="form-control"
+                   placeholder="ابحث بالمادة أو الصف أو الشعبة أو اليوم أو القاعة" />
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            foreach (var day in dayOrder)
+            {
+                <div class="day-group">
+                    <div class="day-title">@day</div>
+
+                    @if (schedulesByDay.ContainsKey(day))
+                    {
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>الحصة</th>
+                                    <th>الوقت</th>
+                                    <th>المادة</th>
+                                    <th>الصف</th>
+                                    <th>الشعبة</th>
+                                    <th>القاعة</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var item in schedulesByDay[day])
+                                {
+                                    <tr class="schedule-row"
+                                        data-search="@($"{item.DayName} {item.SubjectName} {item.ClassRoomName} {item.SectionName} {item.RoomName} {item.Notes}".ToLower())">
+                                        <td>
+                                            <span class="period-badge">الحصة @item.PeriodNumber</span>
+                                        </td>
+
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(item.StartTime) || !string.IsNullOrWhiteSpace(item.EndTime))
+                                            {
+                                                <span class="time-badge">@item.StartTime - @item.EndTime</span>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <span class="subject-badge">@item.SubjectName</span>
+                                        </td>
+
+                                        <td>
+                                            <span class="class-badge">@item.ClassRoomName</span>
+                                        </td>
+
+                                        <td>@(string.IsNullOrWhiteSpace(item.SectionName) ? "-" : item.SectionName)</td>
+
+                                        <td>@(string.IsNullOrWhiteSpace(item.RoomName) ? "-" : item.RoomName)</td>
+
+                                        <td>@(string.IsNullOrWhiteSpace(item.Notes) ? "-" : item.Notes)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="empty-day">
+                            لا توجد حصص في هذا اليوم.
+                        </div>
+                    }
+                </div>
+            }
+
+            <p id="noResultsMessage" style="display:none; margin-top:15px;">
+                لا توجد حصص مطابقة للبحث.
+            </p>
+        }
+        else
+        {
+            <p>لا يوجد جدول دراسي مرتبط بتكليفاتك حتى الآن.</p>
+        }
+    </div>
+
+    <div>
+        <a asp-controller="Teacher" asp-action="Index" class="btn-secondary-custom">
+            رجوع إلى لوحة الأستاذ
+        </a>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        /*
+            بحث مباشر داخل جدول الأستاذ
+        */
+        const scheduleSearchInput = document.getElementById("scheduleSearchInput");
+        const rows = document.querySelectorAll(".schedule-row");
+        const noResultsMessage = document.getElementById("noResultsMessage");
+        const dayGroups = document.querySelectorAll(".day-group");
+
+        if (scheduleSearchInput) {
+            scheduleSearchInput.addEventListener("input", function () {
+                const searchValue = this.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+                    const text = row.getAttribute("data-search");
+
+                    if (text.includes(searchValue)) {
+                        row.style.display = "";
+                        visibleCount++;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                /*
+                    إخفاء اليوم كاملًا إذا كل صفوفه مخفية أثناء البحث
+                */
+                dayGroups.forEach(function (group) {
+                    const groupRows = group.querySelectorAll(".schedule-row");
+                    let hasVisibleRow = false;
+
+                    groupRows.forEach(function (row) {
+                        if (row.style.display !== "none") {
+                            hasVisibleRow = true;
+                        }
+                    });
+
+                    if (groupRows.length > 0) {
+                        group.style.display = hasVisibleRow ? "" : "none";
+                    }
+                });
+
+                if (noResultsMessage) {
+                    noResultsMessage.style.display = visibleCount === 0 ? "block" : "none";
+                }
+            });
+        }
+    </script>
+}

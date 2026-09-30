@@ -1,0 +1,290 @@
+﻿@model List<schoolWeb.ViewModels.StudentPortal.StudentNoteViewModel>
+
+@{
+    ViewData["Title"] = "ملاحظاتي";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*
+    هذه الصفحة تعرض ملاحظات الطالب الخاصة
+
+    الطالب لا يستطيع:
+    - إضافة ملاحظة
+    - تعديل ملاحظة
+    - حذف ملاحظة
+
+    فقط يشاهد ملاحظاته.
+
+    ملاحظة مهمة:
+    عند دخول الطالب إلى هذه الصفحة، يقوم StudentNoteController
+    بتحديث حالة المشاهدة للملاحظات، لذلك يختفي عداد "ملاحظاتي جديد"
+    عند الرجوع إلى لوحة الطالب.
+*@
+
+<div class="dashboard-header">
+    <h2>ملاحظاتي</h2>
+    <p>هنا يمكنك عرض الملاحظات التي أضافتها لك الإدارة، مرتبة من الأحدث إلى الأقدم.</p>
+</div>
+
+<style>
+    .student-notes-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .student-info-card,
+    .notes-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .student-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .info-box span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+    .notes-search-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 20px;
+    }
+
+    .viewed-note {
+        background: #ecfdf5;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+        border-radius: 16px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        font-weight: bold;
+        line-height: 1.7;
+    }
+
+    .note-item {
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 16px 18px;
+        margin-bottom: 12px;
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+        .note-item:hover {
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+            transform: translateY(-2px);
+        }
+
+    .note-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        color: #64748b;
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+    }
+
+    .note-date {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: bold;
+    }
+
+    .note-number {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .note-content {
+        color: #1e293b;
+        font-size: 1rem;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .empty-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+    }
+
+    @@media (max-width: 900px) {
+        .student-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="student-notes-wrapper">
+
+    <div class="student-info-card">
+        <h3 style="margin-top:0;">بيانات الطالب</h3>
+
+        <div class="student-info-grid">
+            <div class="info-box">
+                <span>اسم الطالب</span>
+                @(ViewBag.StudentName ?? "غير متوفر")
+            </div>
+
+            <div class="info-box">
+                <span>الصف</span>
+                @(ViewBag.ClassRoomName ?? "غير متوفر")
+            </div>
+
+            <div class="info-box">
+                <span>الشعبة</span>
+                @(ViewBag.SectionName ?? "غير متوفر")
+            </div>
+        </div>
+    </div>
+
+    <div class="notes-panel">
+        <h3 style="margin-top:0;">سجل الملاحظات</h3>
+
+        <div class="viewed-note">
+            تم عرض الملاحظات الخاصة بك. عند الرجوع إلى لوحة الطالب سيختفي عداد الملاحظات الجديدة إذا لم توجد ملاحظات أحدث.
+        </div>
+
+        <div class="notes-search-box">
+            <label>بحث في الملاحظات</label>
+            <input id="noteSearchInput"
+                   class="form-control"
+                   placeholder="ابحث داخل نص الملاحظات أو التاريخ..." />
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <div id="notesList">
+                @{
+                    int counter = 1;
+                }
+
+                @foreach (var note in Model)
+                {
+                    var noteText = string.IsNullOrWhiteSpace(note.NoteText) ? "-" : note.NoteText;
+                    var noteDate = note.CreatedAt.ToString("yyyy-MM-dd");
+                    var searchText = $"{noteText} {noteDate}".ToLower();
+
+                    <div class="note-item note-row" data-search="@searchText">
+                        <div class="note-header">
+                            <span class="note-date">
+                                📅 @note.CreatedAt.ToString("yyyy/MM/dd")
+                            </span>
+
+                            <span>
+                                @note.CreatedAt.ToString("hh:mm tt")
+                            </span>
+
+                            <span class="note-number">#@counter</span>
+                        </div>
+
+                        <div class="note-content">
+                            @noteText
+                        </div>
+                    </div>
+
+                    counter++;
+                }
+            </div>
+
+            <p id="noResultsMessage" style="display:none; margin-top:15px;">
+                لا توجد ملاحظات مطابقة للبحث.
+            </p>
+        }
+        else
+        {
+            <div class="empty-box">
+                لا توجد ملاحظات حتى الآن. ستظهر هنا الملاحظات التي تضيفها الإدارة.
+            </div>
+        }
+    </div>
+
+    <div>
+        <a asp-controller="Student" asp-action="Index" class="btn-secondary-custom">
+            رجوع إلى لوحة الطالب
+        </a>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        /*
+            بحث مباشر داخل قائمة الملاحظات
+        */
+        const noteSearchInput = document.getElementById("noteSearchInput");
+        const noteRows = document.querySelectorAll(".note-row");
+        const noResultsMessage = document.getElementById("noResultsMessage");
+
+        if (noteSearchInput) {
+            noteSearchInput.addEventListener("input", function () {
+                const searchValue = this.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                noteRows.forEach(function (row) {
+                    const text = row.getAttribute("data-search") || "";
+
+                    if (text.includes(searchValue)) {
+                        row.style.display = "";
+                        visibleCount++;
+
+                        const numberBadge = row.querySelector(".note-number");
+                        if (numberBadge) {
+                            numberBadge.textContent = "#" + visibleCount;
+                        }
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                if (noResultsMessage) {
+                    noResultsMessage.style.display = visibleCount === 0 && noteRows.length > 0 ? "block" : "none";
+                }
+            });
+        }
+    </script>
+}

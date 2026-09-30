@@ -1,0 +1,199 @@
+﻿@model schoolWeb.ViewModels.CreateStudentViewModel
+
+@*
+    هذه الصفحة مسؤولة عن:
+    - إدخال بيانات طالب جديد
+    - إرسال البيانات إلى AdminStudentController
+    - ثم الكنترولر يرسلها إلى الـ API
+
+    تم تحسين الصفحة بحيث:
+    - الصف يتم اختياره من قائمة منسدلة
+    - الشعبة تظهر حسب الصف المختار فقط
+    - هذا يقلل الأخطاء بدل كتابة الصف والشعبة يدويًا
+*@
+
+@{
+    ViewData["Title"] = "إضافة طالب";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>إضافة طالب جديد</h2>
+    <p>أدخلي بيانات الطالب كاملة، ثم اربطيه بالصف والشعبة.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Create" method="post">
+        <h3>بيانات الحساب</h3>
+
+        <div class="form-group">
+            <label asp-for="FullName">الاسم الرباعي</label>
+            <input asp-for="FullName" class="form-control" placeholder="مثال: محمد أحمد علي حسن" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Username">اسم المستخدم</label>
+            <input asp-for="Username" class="form-control" placeholder="مثال: student1001" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password">كلمة المرور</label>
+            <input asp-for="Password" type="password" class="form-control" placeholder="مثال: 123456" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <hr />
+
+        <h3>بيانات الطالب</h3>
+
+        <div class="info-message">
+            سيتم إنشاء رقم الطالب تلقائيًا عند حفظ الطالب.
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Gender">الجنس</label>
+
+            @*
+            اختيار الجنس يكون عن طريق Radio Buttons
+            بحيث المستخدم يختار:
+            - ذكر
+            - أنثى
+            *@
+
+            <div style="display:flex; gap:20px; margin-top:8px;">
+                <label>
+                    <input type="radio" asp-for="Gender" value="ذكر" />
+                    ذكر
+                </label>
+
+                <label>
+                    <input type="radio" asp-for="Gender" value="أنثى" />
+                    أنثى
+                </label>
+            </div>
+
+            <span asp-validation-for="Gender" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="BirthDate">تاريخ الميلاد</label>
+            <input asp-for="BirthDate" type="date" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Address">العنوان</label>
+            <input asp-for="Address" class="form-control" placeholder="عنوان الطالب" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PhoneNumber">رقم الهاتف</label>
+            <input asp-for="PhoneNumber" class="form-control" placeholder="رقم هاتف الطالب" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ParentName">اسم ولي الأمر</label>
+            <input asp-for="ParentName" class="form-control" placeholder="اسم ولي الأمر" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ParentPhone">رقم ولي الأمر</label>
+            <input asp-for="ParentPhone" class="form-control" placeholder="رقم ولي الأمر" />
+        </div>
+
+        <hr />
+
+        <h3>الصف والشعبة</h3>
+
+        <div class="form-group">
+            <label asp-for="ClassRoomName">الصف</label>
+
+            @*
+            عند اختيار الصف سيتم تشغيل JavaScript
+            ثم جلب الشعب الخاصة بهذا الصف فقط
+            *@
+            <select asp-for="ClassRoomName"
+                    asp-items="Model.ClassRooms"
+                    class="form-control"
+                    id="classRoomSelect">
+                <option value="">-- اختر الصف --</option>
+            </select>
+
+            <span asp-validation-for="ClassRoomName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="SectionName">الشعبة</label>
+
+            @*
+            هذه القائمة ستتعبأ تلقائيًا حسب الصف المختار
+            *@
+            <select asp-for="SectionName"
+                    class="form-control"
+                    id="sectionSelect">
+                <option value="">-- اختر الشعبة --</option>
+            </select>
+
+            <span asp-validation-for="SectionName" class="text-danger"></span>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ الطالب
+            </button>
+
+            <a asp-controller="AdminStudent" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        /*
+            هذا السكربت مسؤول عن:
+            - مراقبة اختيار الصف
+            - إرسال اسم الصف إلى AdminStudentController
+            - جلب الشعب الخاصة بهذا الصف فقط
+            - تعبئة قائمة الشعب تلقائيًا
+        */
+
+        document.getElementById("classRoomSelect").addEventListener("change", function () {
+            var classRoomName = this.value;
+            var sectionSelect = document.getElementById("sectionSelect");
+
+            // تفريغ قائمة الشعب عند تغيير الصف
+            sectionSelect.innerHTML = '<option value="">-- اختر الشعبة --</option>';
+
+            // إذا لم يتم اختيار صف، لا نكمل
+            if (!classRoomName) {
+                return;
+            }
+
+            // استدعاء Action داخل AdminStudentController
+            fetch('/AdminStudent/GetSectionsByClassRoom?classRoomName=' + encodeURIComponent(classRoomName))
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(function (item) {
+                        var option = document.createElement("option");
+
+                        option.value = item.sectionName;
+                        option.text = item.sectionName;
+
+                        sectionSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("حدث خطأ أثناء جلب الشعب:", error);
+                });
+        });
+    </script>
+}

@@ -1,0 +1,268 @@
+﻿@model List<schoolWeb.ViewModels.AdminSchoolSchedule.SchoolScheduleViewModel>
+
+@{
+    ViewData["Title"] = "إدارة الجدول الدراسي";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*
+    هذه الصفحة تعرض الجدول الدراسي كاملًا للمدير
+
+    المدير يستطيع:
+    - إضافة حصة
+    - تعديل حصة
+    - حذف حصة
+    - البحث داخل الجدول
+*@
+
+<div class="dashboard-header">
+    <h2>إدارة الجدول الدراسي</h2>
+    <p>من هنا يمكنك إدارة جدول الحصص حسب الصف والشعبة والمادة والمدرس.</p>
+</div>
+
+<style>
+    .schedule-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .schedule-box {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .schedule-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .search-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+    }
+
+    .badge-day {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .badge-period {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #f5f3ff;
+        color: #6d28d9;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .badge-subject {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: #166534;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .actions-cell {
+        white-space: nowrap;
+    }
+
+        .actions-cell form {
+            display: inline-block;
+        }
+</style>
+
+@if (TempData["Success"] != null)
+{
+    <div class="success-message" style="margin-bottom:20px;">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @TempData["Error"]
+    </div>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="schedule-wrapper">
+
+    <div class="schedule-box">
+        <div class="schedule-actions">
+            <div>
+                <h3 style="margin:0;">قائمة الجدول الدراسي</h3>
+                <p style="margin:8px 0 0; color:#64748b;">
+                    جميع الحصص المسجلة في النظام.
+                </p>
+            </div>
+
+            <a asp-controller="AdminSchoolSchedule"
+               asp-action="Create"
+               class="btn-primary-custom"
+               style="width:auto; padding:12px 24px;">
+                إضافة حصة جديدة
+            </a>
+        </div>
+    </div>
+
+    <div class="schedule-box search-box">
+        <label>بحث في الجدول</label>
+        <input id="scheduleSearchInput"
+               class="form-control"
+               placeholder="ابحث باليوم أو المادة أو المدرس أو الصف أو الشعبة" />
+    </div>
+
+    <div class="schedule-box">
+        @if (Model != null && Model.Any())
+        {
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>اليوم</th>
+                        <th>الحصة</th>
+                        <th>الوقت</th>
+                        <th>المادة</th>
+                        <th>المدرس</th>
+                        <th>الصف</th>
+                        <th>الشعبة</th>
+                        <th>القاعة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        int counter = 1;
+                    }
+
+                    @foreach (var item in Model)
+                    {
+                        <tr class="schedule-row"
+                            data-search="@($"{item.DayName} {item.PeriodNumber} {item.SubjectName} {item.TeacherName} {item.ClassRoomName} {item.SectionName} {item.RoomName}".ToLower())">
+
+                            <td class="row-number">@counter</td>
+
+                            <td>
+                                <span class="badge-day">@item.DayName</span>
+                            </td>
+
+                            <td>
+                                <span class="badge-period">الحصة @item.PeriodNumber</span>
+                            </td>
+
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(item.StartTime) || !string.IsNullOrWhiteSpace(item.EndTime))
+                                {
+                                    <span>@item.StartTime - @item.EndTime</span>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+
+                            <td>
+                                <span class="badge-subject">@item.SubjectName</span>
+                            </td>
+
+                            <td>@item.TeacherName</td>
+                            <td>@item.ClassRoomName</td>
+                            <td>@item.SectionName</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.RoomName) ? "-" : item.RoomName)</td>
+
+                            <td class="actions-cell">
+                                <a asp-controller="AdminSchoolSchedule"
+                                   asp-action="Edit"
+                                   asp-route-id="@item.Id"
+                                   class="btn-warning-custom">
+                                    تعديل
+                                </a>
+
+                                <form asp-action="Delete" method="post">
+                                    <input type="hidden" name="id" value="@item.Id" />
+
+                                    <button type="submit"
+                                            class="btn-danger-custom"
+                                            onclick="return confirm('هل أنت متأكد من حذف هذه الحصة؟');">
+                                        حذف
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        counter++;
+                    }
+                </tbody>
+            </table>
+
+            <p id="noResultsMessage" style="display:none; margin-top:15px;">
+                لا توجد حصص مطابقة للبحث.
+            </p>
+        }
+        else
+        {
+            <p>لا توجد حصص مضافة في الجدول الدراسي حتى الآن.</p>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        /*
+            بحث مباشر داخل جدول الحصص
+        */
+        const scheduleSearchInput = document.getElementById("scheduleSearchInput");
+        const rows = document.querySelectorAll(".schedule-row");
+        const noResultsMessage = document.getElementById("noResultsMessage");
+
+        if (scheduleSearchInput) {
+            scheduleSearchInput.addEventListener("input", function () {
+                const searchValue = this.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+                    const text = row.getAttribute("data-search");
+
+                    if (text.includes(searchValue)) {
+                        row.style.display = "";
+                        visibleCount++;
+                        row.querySelector(".row-number").textContent = visibleCount;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                if (noResultsMessage) {
+                    noResultsMessage.style.display = visibleCount === 0 ? "block" : "none";
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,39 @@
+﻿@model schoolWeb.ViewModels.UpdateClassRoomViewModel
+
+@*
+    هذه الصفحة مسؤولة عن تعديل بيانات الصف
+*@
+
+@{
+    ViewData["Title"] = "تعديل الصف";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>تعديل الصف</h2>
+    <p>يمكنك من هنا تعديل اسم الصف الحالي.</p>
+</div>
+
+<div class="page-box">
+    <form asp-action="EditClassRoom" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-group">
+            <label asp-for="Name">اسم الصف</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px; margin-top:12px;">
+            حفظ التعديل
+        </button>
+
+        <a asp-action="Index" class="btn-secondary-custom">رجوع</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

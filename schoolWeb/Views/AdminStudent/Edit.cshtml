@@ -1,0 +1,209 @@
+﻿@model schoolWeb.ViewModels.UpdateStudentViewModel
+
+@*
+    هذه الصفحة مسؤولة عن:
+    - تعديل بيانات الطالب
+    - تعديل الصف والشعبة
+    - تفعيل أو تعطيل حساب الطالب
+
+    ملاحظة:
+    رقم الطالب يظهر للعرض فقط
+    ولا يتم تعديله يدويًا
+*@
+
+@{
+    ViewData["Title"] = "تعديل طالب";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>تعديل بيانات الطالب</h2>
+    <p>يمكنك من هنا تعديل بيانات الطالب وربطه بصف وشعبة أخرى.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="StudentNumber" />
+
+        <h3>بيانات الحساب</h3>
+
+        <div class="form-group">
+            <label>رقم الطالب</label>
+            <input value="@Model.StudentNumber" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="FullName">الاسم الرباعي</label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Username">اسم المستخدم</label>
+            <input asp-for="Username" class="form-control" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password">كلمة المرور الجديدة</label>
+
+            @*
+            هذا الحقل اختياري
+            إذا ترك فارغًا لن يتم تغيير كلمة المرور
+            *@
+            <input asp-for="Password"
+                   type="password"
+                   class="form-control"
+                   placeholder="اتركيه فارغًا إذا لا تريدين تغيير كلمة المرور" />
+
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group">
+            <label>حالة الحساب</label>
+
+            <div style="display:flex; gap:20px; margin-top:8px;">
+                <label>
+                    <input type="radio" asp-for="IsActive" value="true" />
+                    مفعل
+                </label>
+
+                <label>
+                    <input type="radio" asp-for="IsActive" value="false" />
+                    غير مفعل
+                </label>
+            </div>
+        </div>
+
+        <hr />
+
+        <h3>بيانات الطالب</h3>
+
+        <div class="form-group">
+            <label asp-for="Gender">الجنس</label>
+
+            <div style="display:flex; gap:20px; margin-top:8px;">
+                <label>
+                    <input type="radio" asp-for="Gender" value="ذكر" />
+                    ذكر
+                </label>
+
+                <label>
+                    <input type="radio" asp-for="Gender" value="أنثى" />
+                    أنثى
+                </label>
+            </div>
+
+            <span asp-validation-for="Gender" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="BirthDate">تاريخ الميلاد</label>
+            <input asp-for="BirthDate" type="date" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Address">العنوان</label>
+            <input asp-for="Address" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PhoneNumber">رقم الهاتف</label>
+            <input asp-for="PhoneNumber" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ParentName">اسم ولي الأمر</label>
+            <input asp-for="ParentName" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ParentPhone">رقم ولي الأمر</label>
+            <input asp-for="ParentPhone" class="form-control" />
+        </div>
+
+        <hr />
+
+        <h3>الصف والشعبة</h3>
+
+        <div class="form-group">
+            <label asp-for="ClassRoomName">الصف</label>
+
+            <select asp-for="ClassRoomName"
+                    asp-items="Model.ClassRooms"
+                    class="form-control"
+                    id="classRoomSelect">
+                <option value="">-- اختر الصف --</option>
+            </select>
+
+            <span asp-validation-for="ClassRoomName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="SectionName">الشعبة</label>
+
+            <select asp-for="SectionName"
+                    asp-items="Model.Sections"
+                    class="form-control"
+                    id="sectionSelect">
+                <option value="">-- اختر الشعبة --</option>
+            </select>
+
+            <span asp-validation-for="SectionName" class="text-danger"></span>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ التعديل
+            </button>
+
+            <a asp-controller="AdminStudent" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        /*
+            عند تغيير الصف:
+            - نفرغ قائمة الشعب
+            - نجلب الشعب الخاصة بالصف المختار فقط
+        */
+        document.getElementById("classRoomSelect").addEventListener("change", function () {
+            var classRoomName = this.value;
+            var sectionSelect = document.getElementById("sectionSelect");
+
+            sectionSelect.innerHTML = '<option value="">-- اختر الشعبة --</option>';
+
+            if (!classRoomName) {
+                return;
+            }
+
+            fetch('/AdminStudent/GetSectionsByClassRoom?classRoomName=' + encodeURIComponent(classRoomName))
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(function (item) {
+                        var option = document.createElement("option");
+
+                        option.value = item.sectionName;
+                        option.text = item.sectionName;
+
+                        sectionSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("حدث خطأ أثناء جلب الشعب:", error);
+                });
+        });
+    </script>
+}

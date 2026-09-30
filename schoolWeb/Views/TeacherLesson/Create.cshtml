@@ -1,0 +1,78 @@
+﻿@model schoolWeb.ViewModels.TeacherPortal.CreateTeacherLessonViewModel
+
+@{
+    ViewData["Title"] = "إضافة درس";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*
+    هذه الصفحة يستخدمها المدرس لإضافة درس جديد
+    على أحد التكليفات الخاصة به فقط.
+*@
+
+<div class="dashboard-header">
+    <h2>إضافة درس جديد</h2>
+    <p>اختر المادة والصف والشعبة، ثم أدخل بيانات الدرس.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Create" method="post">
+        <div class="form-group">
+            <label asp-for="TeacherAssignmentId">المادة / الصف / الشعبة</label>
+
+            <select asp-for="TeacherAssignmentId"
+                    asp-items="Model.TeacherAssignments"
+                    class="form-control">
+                <option value="">-- اختر التكليف التدريسي --</option>
+            </select>
+
+            <span asp-validation-for="TeacherAssignmentId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Title">عنوان الدرس</label>
+            <input asp-for="Title"
+                   class="form-control"
+                   placeholder="مثال: درس الجمع والطرح" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description">وصف الدرس</label>
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="4"
+                      placeholder="اكتب وصفًا مختصرًا للدرس"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LessonDate">تاريخ الدرس</label>
+            <input asp-for="LessonDate"
+                   type="date"
+                   class="form-control" />
+            <span asp-validation-for="LessonDate" class="text-danger"></span>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit"
+                    class="btn-primary-custom"
+                    style="width:auto; padding:12px 24px;">
+                حفظ الدرس
+            </button>
+
+            <a asp-controller="TeacherLesson"
+               asp-action="Index"
+               class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

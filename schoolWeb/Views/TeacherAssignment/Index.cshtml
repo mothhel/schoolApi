@@ -1,0 +1,269 @@
+﻿@model schoolWeb.ViewModels.TeacherPortal.TeacherAssignmentsPageViewModel
+
+@{
+    ViewData["Title"] = "تكليفاتي التدريسية";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*
+    هذه الصفحة تعرض تكليفات المدرس الحالية
+
+    المدرس هنا لا يعدل ولا يحذف
+    فقط يشاهد:
+    - المادة
+    - الصف
+    - الشعبة
+
+    لأن إدارة التكليفات من صلاحية المدير.
+*@
+
+<div class="dashboard-header">
+    <h2>تكليفاتي التدريسية</h2>
+    <p>هنا يمكنك الاطلاع على المواد والصفوف والشعب المكلف بتدريسها.</p>
+</div>
+
+<style>
+    .teacher-assignment-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .teacher-summary-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .teacher-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .summary-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .summary-box span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        text-align: center;
+    }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .stat-card p {
+            margin: 0;
+            color: #2563eb;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+    .assignment-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .assignment-search-box {
+        margin-bottom: 20px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+    }
+
+    .subject-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    @@media (max-width: 900px) {
+        .teacher-summary-grid,
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="teacher-assignment-wrapper">
+
+    <div class="teacher-summary-card">
+        <h3 style="margin-top:0;">بيانات المدرس</h3>
+
+        <div class="teacher-summary-grid">
+            <div class="summary-box">
+                <span>اسم المدرس</span>
+                @(string.IsNullOrWhiteSpace(Model.TeacherName) ? "غير متوفر" : Model.TeacherName)
+            </div>
+
+            <div class="summary-box">
+                <span>رقم المدرس</span>
+                @(string.IsNullOrWhiteSpace(Model.TeacherNumber) ? "غير متوفر" : Model.TeacherNumber)
+            </div>
+
+            <div class="summary-box">
+                <span>عدد التكليفات</span>
+                @Model.AssignmentsCount
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>عدد المواد</h3>
+            <p>@Model.SubjectsCount</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>عدد الشعب</h3>
+            <p>@Model.SectionsCount</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>عدد التكليفات</h3>
+            <p>@Model.AssignmentsCount</p>
+        </div>
+    </div>
+
+    <div class="assignment-panel">
+        <h3 style="margin-top:0;">قائمة التكليفات</h3>
+
+        <div class="assignment-search-box">
+            <label>بحث في التكليفات</label>
+            <input id="assignmentSearchInput"
+                   class="form-control"
+                   placeholder="ابحث باسم المادة أو الصف أو الشعبة" />
+        </div>
+
+        @if (Model.Assignments != null && Model.Assignments.Any())
+        {
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>المادة</th>
+                        <th>الصف</th>
+                        <th>الشعبة</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        int counter = 1;
+                    }
+
+                    @foreach (var item in Model.Assignments)
+                    {
+                        <tr class="assignment-row"
+                            data-search="@($"{item.SubjectName} {item.ClassRoomName} {item.SectionName}".ToLower())">
+                            <td class="row-number">@counter</td>
+                            <td>
+                                <span class="subject-badge">
+                                    @item.SubjectName
+                                </span>
+                            </td>
+                            <td>@item.ClassRoomName</td>
+                            <td>@item.SectionName</td>
+                        </tr>
+
+                        counter++;
+                    }
+                </tbody>
+            </table>
+
+            <p id="noResultsMessage" style="display:none; margin-top:15px;">
+                لا توجد تكليفات مطابقة للبحث.
+            </p>
+        }
+        else
+        {
+            <p>لا توجد تكليفات مسجلة لك حتى الآن.</p>
+        }
+    </div>
+
+    <div style="margin-top:5px;">
+        <a asp-controller="Teacher" asp-action="Index" class="btn-secondary-custom">
+            رجوع إلى لوحة المدرس
+        </a>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        /*
+            هذا السكربت مسؤول عن البحث المباشر في جدول التكليفات
+        */
+
+        const assignmentSearchInput = document.getElementById("assignmentSearchInput");
+        const rows = document.querySelectorAll(".assignment-row");
+        const noResultsMessage = document.getElementById("noResultsMessage");
+
+        if (assignmentSearchInput) {
+            assignmentSearchInput.addEventListener("input", function () {
+                const searchValue = this.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+                    const text = row.getAttribute("data-search");
+
+                    if (text.includes(searchValue)) {
+                        row.style.display = "";
+                        visibleCount++;
+                        row.querySelector(".row-number").textContent = visibleCount;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                if (noResultsMessage) {
+                    noResultsMessage.style.display = visibleCount === 0 ? "block" : "none";
+                }
+            });
+        }
+    </script>
+}

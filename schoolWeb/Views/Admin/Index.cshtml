@@ -1,0 +1,302 @@
+﻿@model schoolWeb.ViewModels.Admin.DashboardViewModel
+
+@{
+    ViewData["Title"] = "لوحة المدير";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>لوحة المدير</h2>
+    <p>مرحبًا بك في لوحة التحكم، هنا تجدين نظرة عامة وروابط سريعة لإدارة النظام.</p>
+</div>
+
+<style>
+    .admin-dashboard-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 18px;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        transition: 0.25s;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12);
+        }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            height: 100%;
+            background: #2563eb;
+        }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .stat-number {
+        color: #0f172a;
+        font-size: 30px;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .section-title {
+        margin: 0 0 15px 0;
+        color: #1e293b;
+        font-size: 22px;
+        font-weight: 800;
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+
+    .quick-card {
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 22px;
+        text-decoration: none;
+        color: #1e293b;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        transition: 0.25s;
+        min-height: 125px;
+        display: block;
+    }
+
+        .quick-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.13);
+        }
+
+        .quick-card h3 {
+            margin: 0 0 10px 0;
+            color: #0f172a;
+            font-size: 20px;
+        }
+
+        .quick-card p {
+            margin: 0;
+            color: #64748b;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+    .dashboard-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.07);
+    }
+
+    .wide-card {
+        grid-column: span 2;
+    }
+
+    @@media (max-width: 1100px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .wide-card {
+            grid-column: span 1;
+        }
+    }
+
+    @@media (max-width: 650px) {
+        .stats-grid,
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="admin-dashboard-wrapper">
+
+    <div class="dashboard-panel">
+        <h3 class="section-title">إحصائيات النظام</h3>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">الطلاب</div>
+                <p class="stat-number">@Model.Students</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">المدرسون</div>
+                <p class="stat-number">@Model.Teachers</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">المواد</div>
+                <p class="stat-number">@Model.Subjects</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">الصفوف</div>
+                <p class="stat-number">@Model.ClassRooms</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">الشعب</div>
+                <p class="stat-number">@Model.Sections</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">التكليفات</div>
+                <p class="stat-number">@Model.Assignments</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">الدروس</div>
+                <p class="stat-number">@Model.Lessons</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">الواجبات</div>
+                <p class="stat-number">@Model.Homeworks</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">الحضور والغياب</div>
+                <p class="stat-number">@Model.Attendances</p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">الدرجات</div>
+                <p class="stat-number">@Model.Grades</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="dashboard-panel">
+        <h3 class="section-title">الإدارة الأساسية</h3>
+
+        <div class="quick-actions-grid">
+            <a asp-controller="AdminClassRoom" asp-action="Index" class="quick-card">
+                <h3>إدارة الصفوف</h3>
+                <p>إضافة وتعديل وحذف الصفوف الدراسية.</p>
+            </a>
+
+            <a asp-controller="AdminClassRoom" asp-action="Sections" class="quick-card">
+                <h3>إدارة الشعب</h3>
+                <p>إضافة الشعب وربطها بالصفوف.</p>
+            </a>
+
+            <a asp-controller="AdminStudent" asp-action="Index" class="quick-card">
+                <h3>إدارة الطلاب</h3>
+                <p>إضافة الطلاب، تعديل بياناتهم، وربطهم بالصف والشعبة.</p>
+            </a>
+
+            <a asp-controller="AdminTeacher" asp-action="Index" class="quick-card">
+                <h3>إدارة المدرسين</h3>
+                <p>إضافة المدرسين وتعديل بياناتهم وحساباتهم.</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-panel">
+        <h3 class="section-title">الإدارة التعليمية</h3>
+
+        <div class="quick-actions-grid">
+            <a asp-controller="AdminSubject" asp-action="Index" class="quick-card">
+                <h3>إدارة المواد</h3>
+                <p>إضافة وتعديل المواد الدراسية.</p>
+            </a>
+
+            <a asp-controller="AdminTeacherAssignment" asp-action="Index" class="quick-card">
+                <h3>التكليفات التدريسية</h3>
+                <p>ربط المدرس بالمادة والصف والشعبة.</p>
+            </a>
+
+            <a asp-controller="AdminLesson" asp-action="Index" class="quick-card">
+                <h3>إدارة الدروس</h3>
+                <p>إضافة الدروس حسب المادة والصف والشعبة.</p>
+            </a>
+
+            <a asp-controller="AdminHomework" asp-action="Index" class="quick-card">
+                <h3>إدارة الواجبات</h3>
+                <p>إضافة ومتابعة الواجبات الدراسية.</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-panel">
+        <h3 class="section-title">المتابعة والنتائج</h3>
+
+        <div class="quick-actions-grid">
+            <a asp-controller="AdminAttendance" asp-action="Index" class="quick-card">
+                <h3>الحضور والغياب</h3>
+                <p>تسجيل حضور وغياب الطلاب حسب المادة.</p>
+            </a>
+
+            <a asp-controller="AdminGrade" asp-action="Index" class="quick-card">
+                <h3>إدارة الدرجات</h3>
+                <p>إدخال وتعديل وحذف درجات نصف العام ونهاية العام.</p>
+            </a>
+
+            <a asp-controller="AdminGrade" asp-action="StudentResult" class="quick-card wide-card">
+                <h3>عرض نتيجة طالب</h3>
+                <p>عرض كشف درجات الطالب مع المعدل والتقدير وحالة النجاح أو الرسوب.</p>
+            </a>
+
+            <a asp-controller="AdminStudentNote" asp-action="Index" class="quick-card">
+                <h3>ملاحظات الطلاب</h3>
+                <p>إضافة ومتابعة ملاحظات الطلاب والسلوك العام.</p>
+            </a>
+
+            @if (Context.Session.GetString("IsSystemAdmin") == "true")
+            {
+                <a asp-controller="AdminUser" asp-action="Index" class="quick-card">
+                    <h3>إدارة المستخدمين</h3>
+                    <p>عرض وتعديل بيانات مستخدمي النظام.</p>
+                </a>
+            }
+
+            <a asp-controller="AdminSchoolSchedule" asp-action="Index" class="quick-card">
+                <h3>الجدول الدراسي</h3>
+                <p>إضافة وتعديل جدول الحصص حسب الصف والشعبة.</p>
+            </a>
+
+        </div>
+    </div>
+
+</div>

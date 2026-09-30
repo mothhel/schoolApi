@@ -1,0 +1,163 @@
+﻿@model schoolWeb.ViewModels.UserManagement.EditUsernameViewModel
+
+@{
+    ViewData["Title"] = "تعديل اسم المستخدم";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*
+    هذه الصفحة خاصة بمدير النظام الرئيسي فقط
+
+    الهدف:
+    - عرض بيانات المستخدم
+    - تعديل اسم المستخدم
+    - منع ترك اسم المستخدم فارغًا
+
+    ملاحظة:
+    التحقق من الصلاحية موجود في AdminUserController
+*@
+
+<div class="dashboard-header">
+    <h2>تعديل اسم المستخدم</h2>
+    <p>يمكنك من هنا تعديل اسم المستخدم لأي حساب في النظام.</p>
+</div>
+
+<style>
+    .edit-username-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        max-width: 800px;
+    }
+
+    .edit-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 22px;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .info-box span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+    .warning-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 20px;
+        line-height: 1.8;
+        font-weight: bold;
+    }
+
+    .actions-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    @@media (max-width: 700px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (TempData["Error"] != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="edit-username-wrapper">
+
+    <div class="edit-card">
+        <h3 style="margin-top:0;">بيانات المستخدم</h3>
+
+        <div class="info-grid">
+            <div class="info-box">
+                <span>الاسم الكامل</span>
+                @(string.IsNullOrWhiteSpace(Model.FullName) ? "غير متوفر" : Model.FullName)
+            </div>
+
+            <div class="info-box">
+                <span>نوع الحساب</span>
+                @(string.IsNullOrWhiteSpace(Model.RoleName) ? "غير متوفر" : Model.RoleName)
+            </div>
+
+            <div class="info-box">
+                <span>اسم المستخدم الحالي</span>
+                @(string.IsNullOrWhiteSpace(Model.CurrentUsername) ? "غير متوفر" : Model.CurrentUsername)
+            </div>
+
+            <div class="info-box">
+                <span>رقم المستخدم</span>
+                @Model.UserId
+            </div>
+        </div>
+
+        <div class="warning-box">
+            تنبيه: بعد تعديل اسم المستخدم، سيستخدم صاحب الحساب الاسم الجديد عند تسجيل الدخول.
+        </div>
+
+        <form asp-action="EditUsername" method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="FullName" />
+            <input type="hidden" asp-for="CurrentUsername" />
+            <input type="hidden" asp-for="RoleName" />
+
+            <div asp-validation-summary="ModelOnly" class="error-message" style="margin-bottom:15px;"></div>
+
+            <div class="form-group">
+                <label asp-for="NewUsername">اسم المستخدم الجديد</label>
+                <input asp-for="NewUsername"
+                       class="form-control"
+                       placeholder="اكتب اسم المستخدم الجديد" />
+                <span asp-validation-for="NewUsername" class="text-danger"></span>
+            </div>
+
+            <div class="actions-row">
+                <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                    حفظ التعديل
+                </button>
+
+                <a asp-controller="AdminUser"
+                   asp-action="Index"
+                   class="btn-secondary-custom">
+                    رجوع إلى إدارة المستخدمين
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

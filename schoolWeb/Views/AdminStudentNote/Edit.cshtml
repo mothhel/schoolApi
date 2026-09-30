@@ -1,0 +1,68 @@
+﻿@model schoolWeb.ViewModels.StudentNote.UpdateStudentNoteViewModel
+
+@{
+    ViewData["Title"] = "تعديل ملاحظة";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>تعديل ملاحظة طالب</h2>
+    <p>يمكنك تعديل الطالب المرتبط بالملاحظة أو تعديل نص الملاحظة.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-group">
+            <label asp-for="StudentNumber">الطالب</label>
+
+            <select asp-for="StudentNumber"
+                    asp-items="Model.Students"
+                    class="form-control"
+                    id="studentSelect">
+                <option value="">-- ابحثي أو اختاري الطالب --</option>
+            </select>
+
+            <span asp-validation-for="StudentNumber" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="NoteText">نص الملاحظة</label>
+            <textarea asp-for="NoteText"
+                      class="form-control"
+                      rows="5"
+                      placeholder="اكتبي الملاحظة هنا..."></textarea>
+            <span asp-validation-for="NoteText" class="text-danger"></span>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ التعديل
+            </button>
+
+            <a asp-controller="AdminStudentNote" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            $('#studentSelect').select2({
+                placeholder: "-- ابحثي أو اختاري الطالب --",
+                allowClear: true,
+                width: '100%',
+                dir: "rtl"
+            });
+        });
+    </script>
+}

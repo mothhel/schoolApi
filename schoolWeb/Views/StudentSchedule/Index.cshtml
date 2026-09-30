@@ -1,0 +1,353 @@
+﻿@model List<schoolWeb.ViewModels.StudentPortal.StudentScheduleViewModel>
+
+@{
+    ViewData["Title"] = "جدولي الدراسي";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var dayOrder = new List<string>
+    {
+        "السبت",
+        "الأحد",
+        "الاثنين",
+        "الثلاثاء",
+        "الأربعاء",
+        "الخميس"
+    };
+
+    var schedulesByDay = Model != null
+        ? Model.GroupBy(s => s.DayName).ToDictionary(g => g.Key, g => g.OrderBy(x => x.PeriodNumber).ToList())
+        : new Dictionary<string, List<schoolWeb.ViewModels.StudentPortal.StudentScheduleViewModel>>();
+}
+
+@*
+    هذه الصفحة تعرض الجدول الدراسي للطالب فقط
+
+    الطالب لا يستطيع:
+    - إضافة
+    - تعديل
+    - حذف
+
+    فقط يشاهد جدول صفه وشعبته.
+
+    ملاحظة مهمة:
+    عند دخول الطالب إلى هذه الصفحة، يقوم StudentScheduleController
+    بتحديث حالة المشاهدة للجدول الدراسي، لذلك يختفي عداد "جدولي الدراسي جديد"
+    عند الرجوع إلى لوحة الطالب.
+*@
+
+<div class="dashboard-header">
+    <h2>جدولي الدراسي</h2>
+    <p>هنا يمكنك عرض جدولك الدراسي حسب الصف والشعبة.</p>
+</div>
+
+<style>
+    .student-schedule-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .student-info-card,
+    .schedule-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .student-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .info-box span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+    .schedule-search-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 20px;
+    }
+
+    .day-title {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 16px;
+        padding: 14px 18px;
+        font-weight: bold;
+        margin: 22px 0 12px 0;
+        border: 1px solid #bfdbfe;
+    }
+
+    .period-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #f5f3ff;
+        color: #6d28d9;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .subject-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: #166534;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .time-badge {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #fffbeb;
+        color: #92400e;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .viewed-note {
+        background: #ecfdf5;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+        border-radius: 16px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        font-weight: bold;
+        line-height: 1.7;
+    }
+
+    .empty-day {
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        padding: 14px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+    }
+
+    .empty-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+    }
+
+    @@media (max-width: 900px) {
+        .student-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="student-schedule-wrapper">
+
+    <div class="student-info-card">
+        <h3 style="margin-top:0;">بيانات الطالب</h3>
+
+        <div class="student-info-grid">
+            <div class="info-box">
+                <span>اسم الطالب</span>
+                @(ViewBag.StudentName ?? "غير متوفر")
+            </div>
+
+            <div class="info-box">
+                <span>الصف</span>
+                @(ViewBag.ClassRoomName ?? "غير متوفر")
+            </div>
+
+            <div class="info-box">
+                <span>الشعبة</span>
+                @(ViewBag.SectionName ?? "غير متوفر")
+            </div>
+        </div>
+    </div>
+
+    <div class="schedule-panel">
+        <h3 style="margin-top:0;">الجدول الدراسي</h3>
+
+        <div class="viewed-note">
+            تم عرض جدولك الدراسي. عند الرجوع إلى لوحة الطالب سيختفي عداد الجدول الدراسي الجديد إذا لم توجد حصص أحدث.
+        </div>
+
+        <div class="schedule-search-box">
+            <label>بحث في الجدول</label>
+            <input id="scheduleSearchInput"
+                   class="form-control"
+                   placeholder="ابحث بالمادة أو المدرس أو اليوم أو القاعة" />
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            foreach (var day in dayOrder)
+            {
+                <div class="day-group">
+                    <div class="day-title">@day</div>
+
+                    @if (schedulesByDay.ContainsKey(day))
+                    {
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>الحصة</th>
+                                    <th>الوقت</th>
+                                    <th>المادة</th>
+                                    <th>المدرس</th>
+                                    <th>القاعة</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var item in schedulesByDay[day])
+                                {
+                                    var subjectName = string.IsNullOrWhiteSpace(item.SubjectName) ? "-" : item.SubjectName;
+                                    var teacherName = string.IsNullOrWhiteSpace(item.TeacherName) ? "-" : item.TeacherName;
+                                    var roomName = string.IsNullOrWhiteSpace(item.RoomName) ? "-" : item.RoomName;
+                                    var notes = string.IsNullOrWhiteSpace(item.Notes) ? "-" : item.Notes;
+                                    var searchText = $"{item.DayName} {subjectName} {teacherName} {roomName} {notes}".ToLower();
+
+                                    <tr class="schedule-row" data-search="@searchText">
+                                        <td>
+                                            <span class="period-badge">الحصة @item.PeriodNumber</span>
+                                        </td>
+
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(item.StartTime) || !string.IsNullOrWhiteSpace(item.EndTime))
+                                            {
+                                                <span class="time-badge">
+                                                    @(string.IsNullOrWhiteSpace(item.StartTime) ? "--:--" : item.StartTime)
+                                                    -
+                                                    @(string.IsNullOrWhiteSpace(item.EndTime) ? "--:--" : item.EndTime)
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <span class="subject-badge">@subjectName</span>
+                                        </td>
+
+                                        <td>@teacherName</td>
+
+                                        <td>@roomName</td>
+
+                                        <td>@notes</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="empty-day">
+                            لا توجد حصص في هذا اليوم.
+                        </div>
+                    }
+                </div>
+            }
+
+            <p id="noResultsMessage" style="display:none; margin-top:15px;">
+                لا توجد حصص مطابقة للبحث.
+            </p>
+        }
+        else
+        {
+            <div class="empty-box">
+                لا يوجد جدول دراسي مسجل لصفك وشعبتك حتى الآن.
+            </div>
+        }
+    </div>
+
+    <div>
+        <a asp-controller="Student" asp-action="Index" class="btn-secondary-custom">
+            رجوع إلى لوحة الطالب
+        </a>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        /*
+            بحث مباشر داخل الجدول
+        */
+        const scheduleSearchInput = document.getElementById("scheduleSearchInput");
+        const rows = document.querySelectorAll(".schedule-row");
+        const noResultsMessage = document.getElementById("noResultsMessage");
+        const dayGroups = document.querySelectorAll(".day-group");
+
+        if (scheduleSearchInput) {
+            scheduleSearchInput.addEventListener("input", function () {
+                const searchValue = this.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+                    const text = row.getAttribute("data-search") || "";
+
+                    if (text.includes(searchValue)) {
+                        row.style.display = "";
+                        visibleCount++;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                /*
+                    إخفاء اليوم كاملًا إذا كل صفوفه مخفية أثناء البحث
+                */
+                dayGroups.forEach(function (group) {
+                    const groupRows = group.querySelectorAll(".schedule-row");
+                    let hasVisibleRow = false;
+
+                    groupRows.forEach(function (row) {
+                        if (row.style.display !== "none") {
+                            hasVisibleRow = true;
+                        }
+                    });
+
+                    if (groupRows.length > 0) {
+                        group.style.display = hasVisibleRow ? "" : "none";
+                    }
+                });
+
+                if (noResultsMessage) {
+                    noResultsMessage.style.display = visibleCount === 0 && rows.length > 0 ? "block" : "none";
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,421 @@
+﻿@model schoolWeb.ViewModels.Grade.StudentFullResultViewModel
+
+@{
+    ViewData["Title"] = "نتيجتي";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    /*
+        نوع النتيجة المختار:
+        MidYear = نتيجة نصف العام
+        FullResult = النتيجة النهائية
+
+        الافتراضي: النتيجة النهائية
+    */
+    var selectedResultType = Context.Request.Query["selectedResultType"].ToString();
+
+    if (string.IsNullOrWhiteSpace(selectedResultType))
+    {
+        selectedResultType = "FullResult";
+    }
+
+    decimal displayedGrandTotal = 0;
+    decimal displayedMaxTotal = 0;
+    decimal displayedPercentage = 0;
+    int displayedFailedSubjectsCount = 0;
+    string displayedFinalStatus = "ناجح";
+    string displayedEstimate = "غير متوفر";
+
+    if (Model != null && Model.Results != null && Model.Results.Any())
+    {
+        if (selectedResultType == "MidYear")
+        {
+            displayedGrandTotal = Model.Results.Sum(r => r.MidYearTotal);
+            displayedMaxTotal = Model.Results.Count * 50;
+            displayedFailedSubjectsCount = Model.Results.Count(r => r.MidYearTotal < 25);
+        }
+        else
+        {
+            displayedGrandTotal = Model.Results.Sum(r => r.Total);
+            displayedMaxTotal = Model.Results.Count * 100;
+            displayedFailedSubjectsCount = Model.Results.Count(r => r.Total < 50);
+        }
+
+        displayedPercentage = displayedMaxTotal > 0
+            ? Math.Round((displayedGrandTotal / displayedMaxTotal) * 100, 2)
+            : 0;
+
+        displayedFinalStatus = displayedFailedSubjectsCount > 0 ? "راسب" : "ناجح";
+
+        displayedEstimate =
+            displayedPercentage >= 90 ? "ممتاز" :
+            displayedPercentage >= 80 ? "جيد جدًا" :
+            displayedPercentage >= 70 ? "جيد" :
+            displayedPercentage >= 60 ? "مقبول" :
+            "ضعيف";
+    }
+}
+
+@functions {
+    /*
+        هذه الدالة تعرض الرقم بدون .00
+
+        مثال:
+        50.00 تصبح 50
+        49.50 تصبح 49.5
+    */
+    string FormatNumber(decimal value)
+    {
+        return value.ToString("0.##");
+    }
+}
+
+<div class="dashboard-header">
+    <h2>نتيجتي</h2>
+    <p>اختر الصف ونوع النتيجة لعرض نتيجتك.</p>
+</div>
+
+<style>
+    .result-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .student-summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 25px;
+    }
+
+    .summary-item {
+        background: #eef2ff;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .summary-item span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+    .result-footer-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .footer-box {
+        border-radius: 14px;
+        padding: 15px;
+        text-align: center;
+        font-weight: bold;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #1e293b;
+    }
+
+        .footer-box span {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+    .success-status {
+        background: #ecfdf5;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .fail-status {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    .result-badge {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .failed-row {
+        background: #fff1f2;
+    }
+
+    .result-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .empty-result-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        border-radius: 16px;
+        padding: 18px;
+        font-weight: bold;
+    }
+
+    @@media (max-width: 900px) {
+        .student-summary,
+        .result-footer-grid,
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+@if (Model != null)
+{
+    <div class="result-card">
+        <h3 style="margin-top:0;">اختيار عرض النتيجة</h3>
+
+        <form asp-action="Index" method="get">
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label>الصف</label>
+
+                    <select name="selectedClassRoomName" class="form-control">
+                        @if (Model.AvailableClassRooms != null && Model.AvailableClassRooms.Any())
+                        {
+                            foreach (var classRoom in Model.AvailableClassRooms)
+                            {
+                                if (classRoom == Model.SelectedClassRoomName)
+                                {
+                                    <option value="@classRoom" selected>@classRoom</option>
+                                }
+                                else
+                                {
+                                    <option value="@classRoom">@classRoom</option>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <option value="@Model.ClassRoomName" selected>
+                                @(string.IsNullOrWhiteSpace(Model.ClassRoomName) ? "الصف الحالي" : Model.ClassRoomName)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>نوع النتيجة</label>
+
+                    <select name="selectedResultType" class="form-control">
+                        @if (selectedResultType == "MidYear")
+                        {
+                            <option value="MidYear" selected>نتيجة نصف العام</option>
+                            <option value="FullResult">النتيجة النهائية</option>
+                        }
+                        else
+                        {
+                            <option value="MidYear">نتيجة نصف العام</option>
+                            <option value="FullResult" selected>النتيجة النهائية</option>
+                        }
+                    </select>
+                </div>
+
+                <button type="submit"
+                        class="btn-primary-custom"
+                        style="width:auto; padding:12px 24px;">
+                    عرض النتيجة
+                </button>
+            </div>
+        </form>
+    </div>
+}
+
+@if (Model != null && Model.Results != null && Model.Results.Any())
+{
+    <div class="result-actions">
+        <a asp-controller="Student" asp-action="Index" class="btn-secondary-custom">
+            رجوع إلى لوحة الطالب
+        </a>
+    </div>
+
+    <div class="result-card">
+        <h3 style="margin-top:0;">بيانات الطالب</h3>
+
+        @if (selectedResultType == "MidYear")
+        {
+            <div class="result-badge">نتيجة نصف العام</div>
+        }
+        else
+        {
+            <div class="result-badge">النتيجة النهائية</div>
+        }
+
+        <div class="student-summary">
+            <div class="summary-item">
+                <span>اسم الطالب</span>
+                @Model.StudentName
+            </div>
+
+            <div class="summary-item">
+                <span>رقم الطالب</span>
+                @Model.StudentNumber
+            </div>
+
+            <div class="summary-item">
+                <span>الصف</span>
+                @(string.IsNullOrWhiteSpace(Model.SelectedClassRoomName) ? Model.ClassRoomName : Model.SelectedClassRoomName)
+            </div>
+
+            <div class="summary-item">
+                <span>الشعبة</span>
+                @Model.SectionName
+            </div>
+        </div>
+
+        @if (selectedResultType == "MidYear")
+        {
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>المادة</th>
+                        <th>المحصلة الأولى /20</th>
+                        <th>اختبار نصف العام /30</th>
+                        <th>مجموع نصف العام /50</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        int counter = 1;
+                    }
+
+                    @foreach (var item in Model.Results)
+                    {
+                        var isFailed = item.MidYearTotal < 25;
+
+                        <tr class="@(isFailed ? "failed-row" : "")">
+                            <td>@counter</td>
+                            <td>@item.SubjectName</td>
+                            <td>@FormatNumber(item.FirstAssessmentScore)</td>
+                            <td>@FormatNumber(item.MidtermExamScore)</td>
+                            <td><strong>@FormatNumber(item.MidYearTotal)</strong></td>
+                            <td>@(isFailed ? "راسب" : "ناجح")</td>
+                        </tr>
+
+                        counter++;
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>المادة</th>
+                        <th>نصف العام /50</th>
+                        <th>نهاية العام /50</th>
+                        <th>المجموع /100</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        int counter = 1;
+                    }
+
+                    @foreach (var item in Model.Results)
+                    {
+                        var isFailed = item.Total < 50;
+
+                        <tr class="@(isFailed ? "failed-row" : "")">
+                            <td>@counter</td>
+                            <td>@item.SubjectName</td>
+                            <td>@FormatNumber(item.MidYearTotal)</td>
+                            <td>@FormatNumber(item.FinalYearTotal)</td>
+                            <td><strong>@FormatNumber(item.Total)</strong></td>
+                            <td>@(isFailed ? "راسب" : "ناجح")</td>
+                        </tr>
+
+                        counter++;
+                    }
+                </tbody>
+            </table>
+        }
+
+        <div class="result-footer-grid">
+            <div class="footer-box">
+                <span>المجموع</span>
+                @FormatNumber(displayedGrandTotal) / @FormatNumber(displayedMaxTotal)
+            </div>
+
+            <div class="footer-box">
+                <span>المعدل</span>
+                @FormatNumber(displayedPercentage) %
+            </div>
+
+            <div class="footer-box">
+                <span>التقدير</span>
+                @displayedEstimate
+            </div>
+
+            <div class="footer-box @(displayedFinalStatus == "ناجح" ? "success-status" : "fail-status")">
+                <span>الحالة</span>
+                @displayedFinalStatus
+            </div>
+
+            <div class="footer-box @(displayedFailedSubjectsCount > 0 ? "fail-status" : "success-status")">
+                <span>مواد الرسوب</span>
+                @displayedFailedSubjectsCount
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="result-card">
+        <div class="empty-result-box">
+            لا توجد نتيجة متاحة حتى الآن للصف أو نوع النتيجة المختار.
+        </div>
+
+        <div style="margin-top:20px;">
+            <a asp-controller="Student" asp-action="Index" class="btn-secondary-custom">
+                رجوع إلى لوحة الطالب
+            </a>
+        </div>
+    </div>
+}

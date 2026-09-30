@@ -1,0 +1,118 @@
+﻿@model schoolWeb.ViewModels.Teacher.UpdateTeacherViewModel
+
+@*
+    هذه الصفحة مسؤولة عن:
+    - تعديل بيانات المدرس
+    - تعديل رقم المدرس
+    - تعديل كلمة المرور اختيارياً
+    - تفعيل أو تعطيل الحساب
+*@
+
+@{
+    ViewData["Title"] = "تعديل مدرس";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>تعديل بيانات المدرس</h2>
+    <p>يمكنك من هنا تعديل بيانات المدرس وحالة حسابه.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <h3>بيانات الحساب</h3>
+
+        <div class="form-group">
+            <label>رقم المدرس</label>
+            <input value="@Model.TeacherNumber" class="form-control" readonly />
+        </div>
+
+        <input type="hidden" asp-for="TeacherNumber" />
+
+        <div class="form-group">
+            <label asp-for="FullName">اسم المدرس</label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Username">اسم المستخدم</label>
+            <input asp-for="Username" class="form-control" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password">كلمة المرور الجديدة</label>
+
+            @*
+            إذا تُركت فارغة لن تتغير كلمة المرور
+            *@
+            <input asp-for="Password"
+                   type="password"
+                   class="form-control"
+                   placeholder="اتركيه فارغًا إذا لا تريدين تغيير كلمة المرور" />
+
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label>حالة الحساب</label>
+
+            <div style="display:flex; gap:20px; margin-top:8px;">
+                <label>
+                    <input type="radio" asp-for="IsActive" value="true" />
+                    مفعل
+                </label>
+
+                <label>
+                    <input type="radio" asp-for="IsActive" value="false" />
+                    غير مفعل
+                </label>
+            </div>
+        </div>
+
+        <hr />
+
+        <h3>بيانات المدرس</h3>
+
+        <div class="form-group">
+            <label asp-for="Specialty">التخصص</label>
+            <input asp-for="Specialty" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PhoneNumber">رقم الهاتف</label>
+            <input asp-for="PhoneNumber" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Address">العنوان</label>
+            <input asp-for="Address" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="HireDate">تاريخ التوظيف</label>
+            <input asp-for="HireDate" type="date" class="form-control" />
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ التعديل
+            </button>
+
+            <a asp-controller="AdminTeacher" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

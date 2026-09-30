@@ -1,0 +1,366 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background: #f4f7fb;
+    color: #1f2937;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+}
+
+.container {
+    width: 90%;
+    max-width: 1150px;
+    margin: 0 auto;
+}
+
+.main-header {
+    background: #0f172a;
+    color: white;
+    padding: 16px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.nav-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.brand a {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+    .nav-links a {
+        color: #e5e7eb;
+        font-size: 15px;
+        transition: 0.3s;
+    }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+.welcome-text {
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+.logout-link {
+    background: #dc2626;
+    color: white !important;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.page-content {
+    padding: 35px 0;
+}
+
+/* Login Page */
+.auth-page {
+    min-height: calc(100vh - 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 430px;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+    padding: 35px 30px;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+    .auth-header h1 {
+        margin: 0;
+        color: #0f172a;
+        font-size: 30px;
+        font-weight: 800;
+    }
+
+    .auth-header p {
+        margin-top: 10px;
+        color: #64748b;
+        font-size: 15px;
+    }
+
+.auth-form .form-group {
+    margin-bottom: 18px;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.form-control {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: 0.3s;
+    background: #f8fafc;
+}
+
+    .form-control:focus {
+        outline: none;
+        border-color: #2563eb;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+.btn-primary-custom {
+    width: 100%;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+    .btn-primary-custom:hover {
+        background: #1d4ed8;
+    }
+
+.text-danger {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #dc2626;
+}
+
+.validation-summary-errors {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+/* Dashboard Pages */
+.dashboard-header {
+    margin-bottom: 25px;
+}
+
+    .dashboard-header h2 {
+        margin: 0 0 8px 0;
+        color: #0f172a;
+        font-size: 30px;
+    }
+
+    .dashboard-header p {
+        margin: 0;
+        color: #64748b;
+        font-size: 15px;
+    }
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-top: 25px;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    border: 1px solid #e5e7eb;
+}
+
+    .dashboard-card h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #0f172a;
+        font-size: 20px;
+    }
+
+    .dashboard-card p {
+        margin: 0;
+        color: #64748b;
+        line-height: 1.7;
+        font-size: 14px;
+    }
+
+.page-box {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    border: 1px solid #e5e7eb;
+}
+
+
+/* 
+   Â–« «·ÃœÊ· ‰” Œœ„Â ·⁄—÷ «·»Ì«‰«  »‘ﬂ· „— »
+   „À·:
+   - «·’›Ê›
+   - «·‘⁄»
+   - «·ÿ·«»
+*/
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: #fff;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+    /*  ‰”Ìﬁ —√” «·ÃœÊ· */
+    .custom-table thead {
+        background: #0f172a;
+        color: white;
+    }
+
+    /*  ‰”Ìﬁ Œ·«Ì« «·ÃœÊ· */
+    .custom-table th,
+    .custom-table td {
+        padding: 14px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: right;
+    }
+
+    /* ·Ê‰ ⁄‰œ «·„—Ê— ⁄·Ï «·’› */
+    .custom-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+/* —”«·… ‰Ã«Õ */
+.success-message {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* —”«·… Œÿ√ */
+.error-message {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+
+
+/* Œ·Ì… «·≈Ã—«¡«  œ«Œ· «·ÃœÊ· */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* “— «· ⁄œÌ· */
+.btn-warning-custom {
+    display: inline-block;
+    background: #f59e0b;
+    color: white;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+/* “— «·Õ–› */
+.btn-danger-custom {
+    display: inline-block;
+    background: #dc2626;
+    color: white;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+/* “— À«‰ÊÌ ··—ÃÊ⁄ */
+.btn-secondary-custom {
+    display: inline-block;
+    background: #475569;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+    /*  √ÀÌ— hover ··√“—«— */
+    .btn-warning-custom:hover,
+    .btn-danger-custom:hover,
+    .btn-secondary-custom:hover {
+        opacity: 0.9;
+    }
+
+
+/* —”«·…  Ê÷ÌÕÌ… œ«Œ· «·‰„«–Ã */
+.info-message {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}

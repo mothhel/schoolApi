@@ -1,0 +1,298 @@
+﻿@model schoolWeb.ViewModels.StudentPortal.StudentDashboardViewModel
+
+@{
+    ViewData["Title"] = "لوحة الطالب";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*
+    هذه الصفحة هي لوحة الطالب الرئيسية
+
+    تعرض:
+    - بيانات الطالب الأساسية
+    - روابط الدروس
+    - روابط الواجبات
+    - الحضور والغياب
+    - الدرجات
+    - النتيجة
+    - الجدول الدراسي
+*@
+
+<div class="dashboard-header">
+    <h2>لوحة الطالب</h2>
+    <p>مرحبًا بك، يمكنك من هنا متابعة بياناتك ودروسك وواجباتك ونتيجتك.</p>
+</div>
+
+<style>
+    .student-dashboard-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .student-info-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .student-info-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .info-box span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+    .student-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .quick-card {
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 22px;
+        text-decoration: none;
+        color: #1e293b;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.07);
+        transition: 0.25s;
+        min-height: 125px;
+        display: block;
+    }
+
+        .quick-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12);
+        }
+
+        .quick-card h3 {
+            margin: 0 0 10px 0;
+            color: #0f172a;
+            font-size: 20px;
+        }
+
+        .quick-card p {
+            margin: 0;
+            color: #64748b;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+    .personal-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    @@media (max-width: 900px) {
+        .student-info-grid,
+        .personal-info-grid,
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        padding: 0 9px;
+        margin-right: 8px;
+        border-radius: 999px;
+        background: #dc2626;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+</style>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="student-dashboard-wrapper">
+
+    <div class="student-info-card">
+        <h3 style="margin-top:0;">بيانات الطالب الأساسية</h3>
+
+        <div class="student-info-grid">
+            <div class="info-box">
+                <span>اسم الطالب</span>
+                @(string.IsNullOrWhiteSpace(Model.FullName) ? "غير متوفر" : Model.FullName)
+            </div>
+
+            <div class="info-box">
+                <span>رقم الطالب</span>
+                @(string.IsNullOrWhiteSpace(Model.StudentNumber) ? "غير متوفر" : Model.StudentNumber)
+            </div>
+
+            <div class="info-box">
+                <span>الصف</span>
+                @(string.IsNullOrWhiteSpace(Model.ClassRoomName) ? "غير متوفر" : Model.ClassRoomName)
+            </div>
+
+            <div class="info-box">
+                <span>الشعبة</span>
+                @(string.IsNullOrWhiteSpace(Model.SectionName) ? "غير متوفر" : Model.SectionName)
+            </div>
+        </div>
+    </div>
+
+    <div class="student-panel">
+        <h3 style="margin-top:0;">بياناتي الشخصية</h3>
+
+        <div class="personal-info-grid">
+            <div class="info-box">
+                <span>اسم المستخدم</span>
+                @(string.IsNullOrWhiteSpace(Model.Username) ? "غير متوفر" : Model.Username)
+            </div>
+
+            <div class="info-box">
+                <span>الجنس</span>
+                @(string.IsNullOrWhiteSpace(Model.Gender) ? "غير متوفر" : Model.Gender)
+            </div>
+
+            <div class="info-box">
+                <span>تاريخ الميلاد</span>
+                @(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("yyyy-MM-dd") : "غير متوفر")
+            </div>
+
+            <div class="info-box">
+                <span>رقم الجوال</span>
+                @(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "غير متوفر" : Model.PhoneNumber)
+            </div>
+
+            <div class="info-box">
+                <span>ولي الأمر</span>
+                @(string.IsNullOrWhiteSpace(Model.ParentName) ? "غير متوفر" : Model.ParentName)
+            </div>
+
+            <div class="info-box">
+                <span>جوال ولي الأمر</span>
+                @(string.IsNullOrWhiteSpace(Model.ParentPhone) ? "غير متوفر" : Model.ParentPhone)
+            </div>
+
+            <div class="info-box" style="grid-column: span 2;">
+                <span>العنوان</span>
+                @(string.IsNullOrWhiteSpace(Model.Address) ? "غير متوفر" : Model.Address)
+            </div>
+        </div>
+    </div>
+
+    <div class="student-panel">
+        <h3 style="margin-top:0;">روابط الطالب</h3>
+
+        <div class="quick-actions-grid">
+            <a asp-controller="StudentLesson" asp-action="Index" class="quick-card">
+                <h3>
+                    دروسي
+
+                    @if (Model.LessonsCount > 0)
+                    {
+                        <span class="count-badge">جديد @Model.LessonsCount</span>
+                    }
+                </h3>
+
+                <p>عرض الدروس الخاصة بصفك وشعبتك.</p>
+            </a>
+
+            <a asp-controller="StudentHomework" asp-action="Index" class="quick-card">
+                <h3>
+                    واجباتي
+
+                    @if (Model.HomeworksCount > 0)
+                    {
+                        <span class="count-badge green">جديد @Model.HomeworksCount</span>
+                    }
+                </h3>
+
+                <p>عرض الواجبات المطلوبة حسب صفك وشعبتك.</p>
+            </a>
+
+            <a asp-controller="StudentAttendance" asp-action="Index" class="quick-card">
+                <h3>
+                    حضوري وغيابي
+
+                    @if (Model.AttendanceCount > 0)
+                    {
+                        <span class="count-badge orange">جديد @Model.AttendanceCount</span>
+                    }
+                </h3>
+
+                <p>عرض سجل الحضور والغياب الخاص بك.</p>
+            </a>
+
+            <a asp-controller="StudentGrade" asp-action="Index" class="quick-card">
+                <h3>درجاتي</h3>
+                <p>عرض درجاتك في المواد الدراسية.</p>
+            </a>
+
+            <a asp-controller="StudentResult" asp-action="Index" class="quick-card">
+                <h3>نتيجتي</h3>
+                <p>عرض نتيجتك النهائية والمعدل والتقدير.</p>
+            </a>
+
+            <a asp-controller="StudentSchedule" asp-action="Index" class="quick-card">
+                <h3>
+                    جدولي الدراسي
+
+                    @if (Model.ScheduleCount > 0)
+                    {
+                        <span class="count-badge">جديد @Model.ScheduleCount</span>
+                    }
+                </h3>
+
+                <p>عرض جدولك الدراسي حسب الصف والشعبة.</p>
+            </a>
+
+            <a asp-controller="StudentNote" asp-action="Index" class="quick-card">
+                <h3>
+                    ملاحظاتي
+
+                    @if (Model.NotesCount > 0)
+                    {
+                        <span class="count-badge red">جديد @Model.NotesCount</span>
+                    }
+                </h3>
+
+                <p>عرض الملاحظات الخاصة بك من الإدارة.</p>
+            </a>
+        </div>
+    </div>
+
+</div>

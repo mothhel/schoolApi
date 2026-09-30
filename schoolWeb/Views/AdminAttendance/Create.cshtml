@@ -1,0 +1,207 @@
+﻿@model schoolWeb.ViewModels.Attendance.CreateAttendanceViewModel
+
+@{
+    ViewData["Title"] = "إضافة حضور أو غياب";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>إضافة حضور أو غياب</h2>
+    <p>اختاري الطالب، وسيتم عرض الصف والشعبة والمواد تلقائيًا.</p>
+</div>
+
+<style>
+    .attendance-card {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e5e7eb;
+    }
+
+    .student-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 18px;
+        margin: 20px 0;
+    }
+
+    .info-title {
+        margin: 0 0 12px 0;
+        color: #1e293b;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .readonly-box {
+        background: #eef2ff !important;
+        color: #1e293b;
+        font-weight: bold;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 45px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 8px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        top: 9px !important;
+    }
+</style>
+
+<div class="attendance-card">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Create" method="post">
+
+        <div class="form-group">
+            <label asp-for="StudentNumber">الطالب</label>
+
+            <select asp-for="StudentNumber"
+                    asp-items="Model.Students"
+                    class="form-control"
+                    id="studentSelect">
+                <option value="">-- ابحثي أو اختاري الطالب --</option>
+            </select>
+
+            <span asp-validation-for="StudentNumber" class="text-danger"></span>
+        </div>
+
+        <h3 class="info-title">بيانات الطالب</h3>
+
+        <div class="student-info-grid">
+            <div class="form-group">
+                <label>الصف</label>
+                <input id="classRoomText"
+                       class="form-control readonly-box"
+                       readonly
+                       placeholder="سيظهر الصف تلقائيًا" />
+            </div>
+
+            <div class="form-group">
+                <label>الشعبة</label>
+                <input id="sectionText"
+                       class="form-control readonly-box"
+                       readonly
+                       placeholder="ستظهر الشعبة تلقائيًا" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="SubjectName">المادة</label>
+
+            <select asp-for="SubjectName"
+                    class="form-control"
+                    id="subjectSelect">
+                <option value="">-- اختر المادة --</option>
+            </select>
+
+            <span asp-validation-for="SubjectName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="AttendanceDate">التاريخ</label>
+            <input asp-for="AttendanceDate" type="date" class="form-control" />
+            <span asp-validation-for="AttendanceDate" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Status">الحالة</label>
+
+            <select asp-for="Status" class="form-control">
+                <option value="">-- اختر الحالة --</option>
+                <option value="حاضر">حاضر</option>
+                <option value="غائب">غائب</option>
+                <option value="مستأذن">مستأذن</option>
+            </select>
+
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Notes">ملاحظات</label>
+            <textarea asp-for="Notes"
+                      class="form-control"
+                      rows="3"
+                      placeholder="ملاحظات اختيارية"></textarea>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ السجل
+            </button>
+
+            <a asp-controller="AdminAttendance" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+
+            $('#studentSelect').select2({
+                placeholder: "-- ابحثي أو اختاري الطالب --",
+                allowClear: true,
+                width: '100%',
+                dir: "rtl"
+            });
+
+            $('#studentSelect').on('change', function () {
+                const studentNumber = $(this).val();
+
+                const classRoomText = document.getElementById("classRoomText");
+                const sectionText = document.getElementById("sectionText");
+                const subjectSelect = document.getElementById("subjectSelect");
+
+                classRoomText.value = "";
+                sectionText.value = "";
+                subjectSelect.innerHTML = '<option value="">-- اختر المادة --</option>';
+
+                if (!studentNumber) {
+                    return;
+                }
+
+                fetch('/AdminAttendance/GetStudentInfo?studentNumber=' + encodeURIComponent(studentNumber))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data) {
+                            classRoomText.value = data.classRoom ?? "";
+                            sectionText.value = data.section ?? "";
+                        }
+                    })
+                    .catch(error => {
+                        console.error("خطأ في جلب بيانات الطالب:", error);
+                    });
+
+                fetch('/AdminAttendance/GetSubjectsByStudent?studentNumber=' + encodeURIComponent(studentNumber))
+                    .then(response => response.json())
+                    .then(data => {
+                        subjectSelect.innerHTML = '<option value="">-- اختر المادة --</option>';
+
+                        data.forEach(function (item) {
+                            const option = document.createElement("option");
+                            option.value = item.subject;
+                            option.text = item.subject;
+                            subjectSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("خطأ في جلب المواد:", error);
+                    });
+            });
+        });
+    </script>
+}

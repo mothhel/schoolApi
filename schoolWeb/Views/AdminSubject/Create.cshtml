@@ -1,0 +1,43 @@
+﻿@model schoolWeb.ViewModels.Subject.CreateSubjectViewModel
+
+@*
+    هذه الصفحة مسؤولة عن إضافة مادة جديدة
+*@
+
+@{
+    ViewData["Title"] = "إضافة مادة";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>إضافة مادة جديدة</h2>
+    <p>أدخلي اسم المادة ثم اضغطي حفظ.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Create" method="post">
+        <div class="form-group">
+            <label asp-for="Name">اسم المادة</label>
+            <input asp-for="Name" class="form-control" placeholder="مثال: رياضيات" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ المادة
+            </button>
+
+            <a asp-controller="AdminSubject" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

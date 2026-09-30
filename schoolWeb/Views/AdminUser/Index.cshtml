@@ -1,0 +1,462 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@model List<schoolWeb.ViewModels.UserManagement.UserViewModel>
+
+@{
+    ViewData["Title"] = "إدارة المستخدمين";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    /*
+        هذه الصفحة مسؤولة عن:
+        - عرض المستخدمين
+        - فلترة المستخدمين حسب نوع الحساب
+        - البحث داخل النتائج
+        - تفعيل وتعطيل الحساب
+        - تعديل اسم المستخدم
+        - تغيير كلمة المرور
+        - حذف المستخدم
+
+        ملاحظة:
+        هذه الصفحة لا يدخلها إلا مدير النظام الرئيسي فقط
+        لأن الحماية موجودة في AdminUserController.
+    */
+
+    var roleOptions = ViewBag.RoleOptions as List<SelectListItem> ?? new List<SelectListItem>();
+
+    var totalUsers = Model != null ? Model.Count : 0;
+    var adminCount = Model != null ? Model.Count(u => u.RoleName == "Admin") : 0;
+    var teacherCount = Model != null ? Model.Count(u => u.RoleName == "Teacher") : 0;
+    var studentCount = Model != null ? Model.Count(u => u.RoleName == "Student") : 0;
+}
+
+<div class="dashboard-header">
+    <h2>إدارة المستخدمين</h2>
+    <p>من هنا يمكنك عرض الحسابات، فلترتها حسب نوع المستخدم، وتعديل اسم المستخدم وكلمة المرور وحالة الحساب.</p>
+</div>
+
+<style>
+    .user-page-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .filter-box,
+    .table-box {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .summary-boxes {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+
+    .summary-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+    }
+
+        .summary-card .title {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .summary-card .number {
+            color: #0f172a;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+    .role-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .role-admin {
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+
+    .role-teacher {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .role-student {
+        background: #ecfeff;
+        color: #0f766e;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .status-active {
+        background: #ecfdf5;
+        color: #166534;
+    }
+
+    .status-inactive {
+        background: #fef2f2;
+        color: #991b1b;
+    }
+
+    .username-text {
+        display: inline-block;
+        font-weight: bold;
+        color: #0f172a;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 6px 10px;
+        border-radius: 10px;
+    }
+
+    .actions-cell {
+        white-space: nowrap;
+    }
+
+        .actions-cell form {
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .actions-cell a {
+            margin: 2px;
+        }
+
+    .small-action-btn {
+        width: auto !important;
+        padding: 8px 14px !important;
+        font-size: 13px;
+    }
+
+    .btn-username-custom {
+        display: inline-block;
+        background: #0f766e;
+        color: #ffffff !important;
+        border: none;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+        .btn-username-custom:hover {
+            background: #115e59;
+            color: #ffffff !important;
+        }
+
+    @@media (max-width: 900px) {
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-boxes {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .summary-boxes {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (TempData["Success"] != null)
+{
+    <div class="success-message" style="margin-bottom:20px;">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @TempData["Error"]
+    </div>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="user-page-wrapper">
+
+    <div class="summary-boxes">
+        <div class="summary-card">
+            <div class="title">إجمالي المعروض</div>
+            <p class="number">@totalUsers</p>
+        </div>
+
+        <div class="summary-card">
+            <div class="title">المدير</div>
+            <p class="number">@adminCount</p>
+        </div>
+
+        <div class="summary-card">
+            <div class="title">المدرسون</div>
+            <p class="number">@teacherCount</p>
+        </div>
+
+        <div class="summary-card">
+            <div class="title">الطلاب</div>
+            <p class="number">@studentCount</p>
+        </div>
+    </div>
+
+    <div class="filter-box">
+        <h3 style="margin-top:0;">فلترة عرض المستخدمين</h3>
+        <p style="color:#64748b; margin-bottom:18px;">
+            اختر نوع الحساب الذي تريد عرضه، ثم اضغط على زر عرض.
+        </p>
+
+        <form asp-action="Index" method="get">
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label>نوع المستخدم</label>
+
+                    <select name="roleFilter"
+                            class="form-control"
+                            asp-items="roleOptions">
+                    </select>
+                </div>
+
+                <button type="submit"
+                        class="btn-primary-custom"
+                        style="width:auto; padding:12px 24px;">
+                    عرض
+                </button>
+
+                <a asp-action="Index"
+                   class="btn-secondary-custom">
+                    إعادة تعيين
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="filter-box">
+        <h3 style="margin-top:0;">بحث داخل النتائج</h3>
+        <p style="color:#64748b; margin-bottom:18px;">
+            يمكنك البحث بالاسم، اسم المستخدم، رقم الطالب، رقم المدرس، أو نوع الحساب.
+        </p>
+
+        <div class="form-group">
+            <input id="userSearchInput"
+                   class="form-control"
+                   placeholder="مثال: محمد أو student1 أو 2026001 أو Teacher" />
+        </div>
+    </div>
+
+    <div class="table-box">
+        <h3 style="margin-top:0;">قائمة المستخدمين</h3>
+
+        @if (Model != null && Model.Any())
+        {
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>الاسم الكامل</th>
+                        <th>اسم المستخدم</th>
+                        <th>نوع الحساب</th>
+                        <th>رقم الطالب</th>
+                        <th>رقم المدرس</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        int counter = 1;
+                    }
+
+                    @foreach (var item in Model)
+                    {
+                        var searchText = $"{item.FullName} {item.Username} {item.RoleName} {item.StudentNumber} {item.TeacherNumber}".ToLower();
+
+                        <tr class="user-row" data-search="@searchText">
+
+                            <td class="row-number">@counter</td>
+
+                            <td>@(string.IsNullOrWhiteSpace(item.FullName) ? "-" : item.FullName)</td>
+
+                            <td>
+                                <span class="username-text">
+                                    @(string.IsNullOrWhiteSpace(item.Username) ? "-" : item.Username)
+                                </span>
+                            </td>
+
+                            <td>
+                                @if (item.RoleName == "Admin")
+                                {
+                                    <span class="role-badge role-admin">مدير</span>
+                                }
+                                else if (item.RoleName == "Teacher")
+                                {
+                                    <span class="role-badge role-teacher">مدرس</span>
+                                }
+                                else if (item.RoleName == "Student")
+                                {
+                                    <span class="role-badge role-student">طالب</span>
+                                }
+                                else
+                                {
+                                    <span>@item.RoleName</span>
+                                }
+                            </td>
+
+                            <td>@(string.IsNullOrWhiteSpace(item.StudentNumber) ? "-" : item.StudentNumber)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.TeacherNumber) ? "-" : item.TeacherNumber)</td>
+
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="status-badge status-active">مفعل</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-inactive">معطل</span>
+                                }
+                            </td>
+
+                            <td class="actions-cell">
+
+                                @if (item.IsActive)
+                                {
+                                    <form asp-action="UpdateStatus" method="post">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="isActive" value="false" />
+
+                                        <button type="submit"
+                                                class="btn-warning-custom small-action-btn"
+                                                onclick="return confirm('هل تريد تعطيل هذا الحساب؟');">
+                                            تعطيل
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="UpdateStatus" method="post">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="isActive" value="true" />
+
+                                        <button type="submit"
+                                                class="btn-primary-custom small-action-btn"
+                                                onclick="return confirm('هل تريد تفعيل هذا الحساب؟');">
+                                            تفعيل
+                                        </button>
+                                    </form>
+                                }
+
+                                <a asp-controller="AdminUser"
+                                   asp-action="EditUsername"
+                                   asp-route-id="@item.Id"
+                                   class="btn-username-custom small-action-btn">
+                                    اسم المستخدم
+                                </a>
+
+                                <a asp-controller="AdminUser"
+                                   asp-action="ChangePassword"
+                                   asp-route-id="@item.Id"
+                                   class="btn-warning-custom small-action-btn">
+                                    كلمة المرور
+                                </a>
+
+                                <form asp-action="Delete" method="post">
+                                    <input type="hidden" name="id" value="@item.Id" />
+
+                                    <button type="submit"
+                                            class="btn-danger-custom small-action-btn"
+                                            onclick="return confirm('هل أنت متأكد من حذف هذا المستخدم؟');">
+                                        حذف
+                                    </button>
+                                </form>
+
+                            </td>
+                        </tr>
+
+                        counter++;
+                    }
+                </tbody>
+            </table>
+
+            <p id="noResultsMessage" style="display:none; margin-top:15px;">
+                لا توجد بيانات مطابقة للبحث.
+            </p>
+        }
+        else
+        {
+            <p>لا توجد بيانات مطابقة للفلتر المختار.</p>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        /*
+            هذا السكربت مسؤول عن البحث المباشر داخل الجدول
+            دون الحاجة لإعادة تحميل الصفحة.
+        */
+
+        const userSearchInput = document.getElementById("userSearchInput");
+        const rows = document.querySelectorAll(".user-row");
+        const noResultsMessage = document.getElementById("noResultsMessage");
+
+        if (userSearchInput) {
+            userSearchInput.addEventListener("input", function () {
+                const searchValue = this.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+                    const text = row.getAttribute("data-search") || "";
+
+                    if (text.includes(searchValue)) {
+                        row.style.display = "";
+                        visibleCount++;
+
+                        const rowNumber = row.querySelector(".row-number");
+                        if (rowNumber) {
+                            rowNumber.textContent = visibleCount;
+                        }
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                if (noResultsMessage) {
+                    noResultsMessage.style.display = visibleCount === 0 && rows.length > 0 ? "block" : "none";
+                }
+            });
+        }
+    </script>
+}

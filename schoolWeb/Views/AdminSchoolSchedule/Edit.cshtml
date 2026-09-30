@@ -1,0 +1,211 @@
+﻿@model schoolWeb.ViewModels.AdminSchoolSchedule.UpdateSchoolScheduleViewModel
+
+@{
+    ViewData["Title"] = "تعديل حصة";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*
+    هذه الصفحة يستخدمها المدير لتعديل حصة موجودة
+
+    إذا غيّر المدير الصف أو الشعبة:
+    يتم إعادة تحميل التكليفات المناسبة لهذا الصف وهذه الشعبة.
+*@
+
+<div class="dashboard-header">
+    <h2>تعديل حصة في الجدول الدراسي</h2>
+    <p>يمكنك تعديل بيانات الحصة أو تغيير الصف والشعبة والتكليف.</p>
+</div>
+
+<style>
+    .schedule-form-box {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .full-row {
+        grid-column: span 2;
+    }
+
+    .hint-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        border-radius: 16px;
+        padding: 14px;
+        margin-bottom: 18px;
+        font-weight: bold;
+    }
+
+    @@media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .full-row {
+            grid-column: span 1;
+        }
+    }
+</style>
+
+<div class="schedule-form-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    @if (Model.ClassRoomId <= 0 || Model.SectionId <= 0)
+    {
+        <div class="hint-box">
+            اختر الصف والشعبة حتى تظهر التكليفات المناسبة.
+        </div>
+    }
+    else if (Model.TeacherAssignments == null || !Model.TeacherAssignments.Any())
+    {
+        <div class="hint-box">
+            لا توجد تكليفات تدريسية لهذا الصف وهذه الشعبة.
+        </div>
+    }
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label asp-for="ClassRoomId">الصف</label>
+                <select asp-for="ClassRoomId"
+                        asp-items="Model.ClassRooms"
+                        class="form-control"
+                        id="classRoomSelect">
+                    <option value="">-- اختر الصف --</option>
+                </select>
+                <span asp-validation-for="ClassRoomId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="SectionId">الشعبة</label>
+                <select asp-for="SectionId"
+                        asp-items="Model.Sections"
+                        class="form-control"
+                        id="sectionSelect">
+                    <option value="">-- اختر الشعبة --</option>
+                </select>
+                <span asp-validation-for="SectionId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group full-row">
+                <label asp-for="TeacherAssignmentId">المادة / المدرس</label>
+                <select asp-for="TeacherAssignmentId"
+                        asp-items="Model.TeacherAssignments"
+                        class="form-control">
+                    <option value="">-- اختر المادة والمدرس --</option>
+                </select>
+                <span asp-validation-for="TeacherAssignmentId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="DayName">اليوم</label>
+                <select asp-for="DayName"
+                        asp-items="Model.Days"
+                        class="form-control">
+                    <option value="">-- اختر اليوم --</option>
+                </select>
+                <span asp-validation-for="DayName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PeriodNumber">رقم الحصة</label>
+                <select asp-for="PeriodNumber"
+                        asp-items="Model.Periods"
+                        class="form-control">
+                    <option value="">-- اختر الحصة --</option>
+                </select>
+                <span asp-validation-for="PeriodNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="StartTime">وقت البداية</label>
+                <input asp-for="StartTime"
+                       type="time"
+                       class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="EndTime">وقت النهاية</label>
+                <input asp-for="EndTime"
+                       type="time"
+                       class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="RoomName">القاعة</label>
+                <input asp-for="RoomName"
+                       class="form-control"
+                       placeholder="مثال: قاعة 1" />
+            </div>
+
+            <div class="form-group full-row">
+                <label asp-for="Notes">ملاحظات</label>
+                <textarea asp-for="Notes"
+                          class="form-control"
+                          rows="3"
+                          placeholder="ملاحظات اختيارية"></textarea>
+            </div>
+
+        </div>
+
+        <div style="margin-top:25px;">
+            <button type="submit"
+                    class="btn-primary-custom"
+                    style="width:auto; padding:12px 24px;">
+                حفظ التعديل
+            </button>
+
+            <a asp-controller="AdminSchoolSchedule"
+               asp-action="Index"
+               class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        /*
+            عند تغيير الصف أو الشعبة نعيد فتح صفحة التعديل
+            مع تمرير الصف والشعبة الجديدين
+            حتى يتم تحميل التكليفات الخاصة بهما.
+        */
+        const classRoomSelect = document.getElementById("classRoomSelect");
+        const sectionSelect = document.getElementById("sectionSelect");
+
+        function reloadAssignmentsForEdit() {
+            const classRoomId = classRoomSelect.value || 0;
+            const sectionId = sectionSelect.value || 0;
+            const scheduleId = "@Model.Id";
+
+            window.location.href =
+                `/AdminSchoolSchedule/Edit/${scheduleId}?classRoomId=${classRoomId}&sectionId=${sectionId}`;
+        }
+
+        if (classRoomSelect) {
+            classRoomSelect.addEventListener("change", reloadAssignmentsForEdit);
+        }
+
+        if (sectionSelect) {
+            sectionSelect.addEventListener("change", reloadAssignmentsForEdit);
+        }
+    </script>
+}

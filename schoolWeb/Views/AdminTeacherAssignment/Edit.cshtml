@@ -1,0 +1,130 @@
+﻿@model schoolWeb.ViewModels.TeacherAssignment.UpdateTeacherAssignmentViewModel
+
+@*
+    هذه الصفحة مسؤولة عن:
+    - تعديل التكليف التدريسي
+    - تغيير المدرس أو المادة أو الصف أو الشعبة
+*@
+
+@{
+    ViewData["Title"] = "تعديل تكليف تدريسي";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>تعديل التكليف التدريسي</h2>
+    <p>يمكنك من هنا تعديل بيانات التكليف التدريسي.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-group">
+            <label asp-for="TeacherNumber">المدرس</label>
+
+            <select asp-for="TeacherNumber"
+                    asp-items="Model.Teachers"
+                    class="form-control">
+                <option value="">-- اختر المدرس --</option>
+            </select>
+
+            <span asp-validation-for="TeacherNumber" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="SubjectName">المادة</label>
+
+            <select asp-for="SubjectName"
+                    asp-items="Model.Subjects"
+                    class="form-control">
+                <option value="">-- اختر المادة --</option>
+            </select>
+
+            <span asp-validation-for="SubjectName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ClassRoomName">الصف</label>
+
+            <select asp-for="ClassRoomName"
+                    asp-items="Model.ClassRooms"
+                    class="form-control"
+                    id="classRoomSelect">
+                <option value="">-- اختر الصف --</option>
+            </select>
+
+            <span asp-validation-for="ClassRoomName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="SectionName">الشعبة</label>
+
+            @*
+            في صفحة التعديل نعرض كل الشعب مبدئيًا
+            حتى تظهر الشعبة الحالية
+            ثم عند تغيير الصف يتم تحديثها حسب الصف
+            *@
+            <select asp-for="SectionName"
+                    asp-items="Model.Sections"
+                    class="form-control"
+                    id="sectionSelect">
+                <option value="">-- اختر الشعبة --</option>
+            </select>
+
+            <span asp-validation-for="SectionName" class="text-danger"></span>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ التعديل
+            </button>
+
+            <a asp-controller="AdminTeacherAssignment" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        /*
+            عند تغيير الصف:
+            - نفرغ قائمة الشعب
+            - نجلب الشعب الخاصة بالصف المختار فقط
+        */
+        document.getElementById("classRoomSelect").addEventListener("change", function () {
+            var classRoomName = this.value;
+            var sectionSelect = document.getElementById("sectionSelect");
+
+            sectionSelect.innerHTML = '<option value="">-- اختر الشعبة --</option>';
+
+            if (!classRoomName) {
+                return;
+            }
+
+            fetch('/AdminTeacherAssignment/GetSectionsByClassRoom?classRoomName=' + encodeURIComponent(classRoomName))
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(function (item) {
+                        var option = document.createElement("option");
+
+                        option.value = item.sectionName;
+                        option.text = item.sectionName;
+
+                        sectionSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("حدث خطأ أثناء جلب الشعب:", error);
+                });
+        });
+    </script>
+}

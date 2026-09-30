@@ -1,0 +1,275 @@
+﻿@model schoolWeb.ViewModels.TeacherPortal.TeacherDashboardViewModel
+
+@{
+    ViewData["Title"] = "لوحة المدرس";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*
+    هذه الصفحة هي لوحة المدرس الرئيسية
+
+    تعرض:
+    - بيانات المدرس
+    - عدد المواد
+    - عدد الشعب
+    - عدد التكليفات
+    - عدد حصص اليوم
+    - التكليفات التدريسية الخاصة به
+*@
+
+<div class="dashboard-header">
+    <h2>لوحة المدرس</h2>
+    <p>مرحبًا بك، هنا يمكنك عرض المواد والصفوف والشعب المكلف بها.</p>
+</div>
+
+<style>
+    .teacher-dashboard-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .teacher-info-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .teacher-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+        .info-box span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        text-align: center;
+    }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .stat-card p {
+            margin: 0;
+            color: #2563eb;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+    .today-card p {
+        color: #16a34a;
+    }
+
+    .holiday-card p {
+        color: #dc2626;
+    }
+
+    .teacher-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .quick-card {
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 22px;
+        text-decoration: none;
+        color: #1e293b;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.07);
+        transition: 0.25s;
+    }
+
+        .quick-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12);
+        }
+
+        .quick-card h3 {
+            margin: 0 0 10px 0;
+            color: #0f172a;
+        }
+
+        .quick-card p {
+            margin: 0;
+            color: #64748b;
+            line-height: 1.7;
+        }
+
+    @@media (max-width: 900px) {
+        .teacher-info-grid,
+        .stats-grid,
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (ViewBag.Error != null)
+{
+    <div class="error-message" style="margin-bottom:20px;">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="teacher-dashboard-wrapper">
+
+    <div class="teacher-info-card">
+        <h3 style="margin-top:0;">بيانات المدرس</h3>
+
+        <div class="teacher-info-grid">
+            <div class="info-box">
+                <span>اسم المدرس</span>
+                @(string.IsNullOrWhiteSpace(Model.TeacherName) ? "غير متوفر" : Model.TeacherName)
+            </div>
+
+            <div class="info-box">
+                <span>رقم المدرس</span>
+                @(string.IsNullOrWhiteSpace(Model.TeacherNumber) ? "غير متوفر" : Model.TeacherNumber)
+            </div>
+
+            <div class="info-box">
+                <span>عدد التكليفات</span>
+                @Model.AssignmentsCount
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>عدد المواد</h3>
+            <p>@Model.SubjectsCount</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>عدد الشعب</h3>
+            <p>@Model.SectionsCount</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>عدد التكليفات</h3>
+            <p>@Model.AssignmentsCount</p>
+        </div>
+
+        <div class="stat-card @(Model.IsFridayHoliday ? "holiday-card" : "today-card")">
+            <h3>حصص اليوم - @(string.IsNullOrWhiteSpace(Model.TodayDayName) ? "غير محدد" : Model.TodayDayName)</h3>
+
+            @if (Model.IsFridayHoliday)
+            {
+                <p style="font-size:24px;">إجازة</p>
+            }
+            else
+            {
+                <p>@Model.TodayClassesCount</p>
+            }
+        </div>
+    </div>
+
+    <div class="teacher-panel">
+        <h3 style="margin-top:0;">روابط سريعة</h3>
+
+        <div class="quick-actions-grid">
+            <a asp-controller="TeacherAssignment" asp-action="Index" class="quick-card">
+                <h3>تكليفاتي التدريسية</h3>
+                <p>عرض المواد والصفوف والشعب المكلف بها.</p>
+            </a>
+
+            <a asp-controller="TeacherLesson" asp-action="Index" class="quick-card">
+                <h3>دروسي</h3>
+                <p>إدارة الدروس الخاصة بالمواد التي تدرسها.</p>
+            </a>
+
+            <a asp-controller="TeacherHomework" asp-action="Index" class="quick-card">
+                <h3>واجباتي</h3>
+                <p>إضافة ومتابعة الواجبات الخاصة بتكليفاتك.</p>
+            </a>
+
+            <a asp-controller="TeacherSchedule" asp-action="Index" class="quick-card">
+                <h3>جدولي الدراسي</h3>
+                <p>عرض جدول الحصص الخاص بتكليفاتك التدريسية.</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="teacher-panel">
+        <h3 style="margin-top:0;">تكليفاتي الحالية</h3>
+
+        @if (Model.Assignments != null && Model.Assignments.Any())
+        {
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>المادة</th>
+                        <th>الصف</th>
+                        <th>الشعبة</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        int counter = 1;
+                    }
+
+                    @foreach (var item in Model.Assignments)
+                    {
+                        <tr>
+                            <td>@counter</td>
+                            <td>@item.SubjectName</td>
+                            <td>@item.ClassRoomName</td>
+                            <td>@item.SectionName</td>
+                        </tr>
+
+                        counter++;
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>لا توجد تكليفات مسجلة لك حتى الآن.</p>
+        }
+    </div>
+
+</div>

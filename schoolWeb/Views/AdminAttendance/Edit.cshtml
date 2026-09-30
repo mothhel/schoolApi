@@ -1,0 +1,171 @@
+﻿@model schoolWeb.ViewModels.Attendance.UpdateAttendanceViewModel
+
+@*
+    هذه الصفحة مسؤولة عن:
+    - تعديل سجل حضور أو غياب
+    - عند تغيير الطالب يتم تحديث الصف والشعبة والمواد
+*@
+
+@{
+    ViewData["Title"] = "تعديل حضور أو غياب";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-header">
+    <h2>تعديل حضور أو غياب</h2>
+    <p>يمكنك من هنا تعديل الطالب أو المادة أو التاريخ أو حالة الحضور.</p>
+</div>
+
+<div class="page-box">
+    <div asp-validation-summary="All" class="error-message"></div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-group">
+            <label asp-for="StudentNumber">الطالب</label>
+
+            <select asp-for="StudentNumber"
+                    asp-items="Model.Students"
+                    class="form-control"
+                    id="studentSelect">
+                <option value="">-- اختر الطالب --</option>
+            </select>
+
+            <span asp-validation-for="StudentNumber" class="text-danger"></span>
+        </div>
+
+        <div class="page-box" style="background:#f8fafc; margin:20px 0;">
+            <h3 style="margin-top:0;">بيانات الطالب</h3>
+
+            <div class="form-group">
+                <label>الصف</label>
+                <input id="classRoomText" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <label>الشعبة</label>
+                <input id="sectionText" class="form-control" readonly />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="SubjectName">المادة</label>
+
+            <select asp-for="SubjectName"
+                    asp-items="Model.Subjects"
+                    class="form-control"
+                    id="subjectSelect">
+                <option value="">-- اختر المادة --</option>
+            </select>
+
+            <span asp-validation-for="SubjectName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="AttendanceDate">التاريخ</label>
+            <input asp-for="AttendanceDate" type="date" class="form-control" />
+            <span asp-validation-for="AttendanceDate" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Status">الحالة</label>
+
+            <select asp-for="Status" class="form-control">
+                <option value="">-- اختر الحالة --</option>
+                <option value="حاضر">حاضر</option>
+                <option value="غائب">غائب</option>
+                <option value="مستأذن">مستأذن</option>
+            </select>
+
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Notes">ملاحظات</label>
+            <textarea asp-for="Notes"
+                      class="form-control"
+                      rows="3"
+                      placeholder="ملاحظات اختيارية"></textarea>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="btn-primary-custom" style="width:auto; padding:12px 24px;">
+                حفظ التعديل
+            </button>
+
+            <a asp-controller="AdminAttendance" asp-action="Index" class="btn-secondary-custom">
+                رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const studentSelect = document.getElementById("studentSelect");
+        const classRoomText = document.getElementById("classRoomText");
+        const sectionText = document.getElementById("sectionText");
+        const subjectSelect = document.getElementById("subjectSelect");
+
+        const selectedSubject = "@Model.SubjectName";
+
+        function loadStudentInfoAndSubjects(studentNumber, keepSelectedSubject) {
+            classRoomText.value = "";
+            sectionText.value = "";
+
+            if (!keepSelectedSubject) {
+                subjectSelect.innerHTML = '<option value="">-- اختر المادة --</option>';
+            }
+
+            if (!studentNumber) {
+                return;
+            }
+
+            fetch('/AdminAttendance/GetStudentInfo?studentNumber=' + encodeURIComponent(studentNumber))
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        classRoomText.value = data.classRoom;
+                        sectionText.value = data.section;
+                    }
+                })
+                .catch(error => {
+                    console.error("حدث خطأ أثناء جلب بيانات الطالب:", error);
+                });
+
+            fetch('/AdminAttendance/GetSubjectsByStudent?studentNumber=' + encodeURIComponent(studentNumber))
+                .then(response => response.json())
+                .then(data => {
+                    subjectSelect.innerHTML = '<option value="">-- اختر المادة --</option>';
+
+                    data.forEach(function (item) {
+                        const option = document.createElement("option");
+                        option.value = item.subject;
+                        option.text = item.subject;
+
+                        if (keepSelectedSubject && item.subject === selectedSubject) {
+                            option.selected = true;
+                        }
+
+                        subjectSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("حدث خطأ أثناء جلب المواد:", error);
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            loadStudentInfoAndSubjects(studentSelect.value, true);
+        });
+
+        studentSelect.addEventListener("change", function () {
+            loadStudentInfoAndSubjects(this.value, false);
+        });
+    </script>
+}

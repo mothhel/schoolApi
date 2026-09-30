@@ -1,0 +1,28 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace schoolApi.DTOs
+{
+    /*
+        هذا الكلاس يستخدم لإضافة تكليف تدريسي جديد
+
+        سنرسل:
+        - رقم المدرس
+        - اسم المادة
+        - اسم الصف
+        - اسم الشعبة
+    */
+    public class CreateTeacherAssignmentDto
+    {
+        [Required(ErrorMessage = "رقم المدرس مطلوب")]
+        public string TeacherNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "اسم المادة مطلوب")]
+        public string SubjectName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "اسم الصف مطلوب")]
+        public string ClassRoomName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "اسم الشعبة مطلوب")]
+        public string SectionName { get; set; } = string.Empty;
+    }
+}
