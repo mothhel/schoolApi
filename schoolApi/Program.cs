@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using schoolApi.Data;
-using schoolApi.Services;
+// --- «” œ⁄«¡ «·ÿ»ﬁ«  »‘ﬂ· ’ÕÌÕ ---
+using school.Application.Interfaces;
+using school.Application.Services;
+using school.Infrastructure.Data;
+using school.Infrastructure.Services;
 using System.Text;
 
 namespace schoolApi
@@ -14,16 +17,33 @@ namespace schoolApi
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // ==========================================
+            // 1. ≈⁄œ«œ ﬁ«⁄œ… «·»Ì«‰«  (DbContext)
+            // ==========================================
             var cont = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<SchoolDbContext>(option => option.UseSqlServer(cont));
+            builder.Services.AddDbContext<SchoolDbContext>(options =>
+            options.UseSqlServer(cont, b => b.MigrationsAssembly("School.Infrastructure")));
 
-            // ≈÷«›… Œœ„… JWT
+            // —»ÿ IApplicationDbContext «·„ÊÃÊœ ›Ì Application »‹ SchoolDbContext «·„ÊÃÊœ ›Ì Infrastructure
+            builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SchoolDbContext>());
+
+            // ==========================================
+            // 2. —»ÿ «·Œœ„«  (Dependency Injection)
+            // ==========================================
+            // —»ÿ Œœ„… «· Êﬂ‰ »⁄œ  ⁄œÌ· „”«—« Â«
             builder.Services.AddScoped<IJwtService, JwtService>();
+            // ≈÷«›… «·”ÿ— «·ÃœÌœ ·—»ÿ Œœ„… «·„’«œﬁ…
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IStudentService, StudentService>();
+            builder.Services.AddScoped<ITeacherService, TeacherService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
+            // „” ﬁ»·« ” ÷Ì› »ﬁÌ… «·Œœ„«  Â‰« „À·:
+            // builder.Services.AddScoped<IAdminService, AdminService>();
 
-            // ﬁ—«¡… „› «Õ JWT „‰ appsettings.json
+            // ==========================================
+            // 3. ≈⁄œ«œ«  «·‹ JWT (Authentication & Authorization)
+            // ==========================================
             var key = builder.Configuration["Jwt:Key"];
-
-            // ≈÷«›… Authentication »«” Œœ«„ JWT
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -46,14 +66,13 @@ namespace schoolApi
                 };
             });
 
-            // ≈÷«›… Authorization
             builder.Services.AddAuthorization();
-
-            // Add services to the container.
             builder.Services.AddControllers();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
+
+            // ==========================================
+            // 4. ≈⁄œ«œ«  Swagger ·œ⁄„ «· Êﬂ‰
+            // ==========================================
             builder.Services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo
@@ -62,7 +81,6 @@ namespace schoolApi
                     Version = "v1"
                 });
 
-                //  ⁄—Ì› Authorization œ«Œ· Swagger
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -100,7 +118,7 @@ namespace schoolApi
 
             app.UseHttpsRedirection();
 
-            // „Â„ Ãœ«: Authentication ﬁ»· Authorization
+            // «· — Ì» Â‰« „Â„ Ãœ«: Authentication À„ Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 
